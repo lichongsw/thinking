@@ -3,6 +3,4 @@ As a programmer, creativity and executive are the most important factors. No mat
 
 1. Keep thinking in a native view.
 2. Analyze problem and not fall into it.
-3. Make a record for special topics and reflections.
 
-Use English in the description and Chinese in the main body for practice. 
