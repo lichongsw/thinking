@@ -58,7 +58,7 @@
 
 redis已经是极致的快了，那还有啥因数会影响性能呢？
 
-1. 网络带宽和延迟通常是最大短板。两个金山云的主机， 同样的benchmark测试从本地发起和从另一个主机发起的测试结果相差几倍。按理一个是loopback的TCPsocket，一个相当于是外网的TCPsocket。![](E:\lc\playround\thinking\images\redis_benchmark.png)
+1. 网络带宽和延迟通常是最大短板。两个金山云的主机， 同样的benchmark测试从本地发起和从另一个主机发起的测试结果相差几倍。按理一个是loopback的TCPsocket，一个相当于是外网的TCPsocket。![redis_benchmark](https://github.com/lichongsw/thinking/blob/master/images/redis_benchmark.png)
 2. 在单核心的硬件，redis是更喜欢高频率大缓存，当然这个必须更贵。多核的意义不大，只能开多个实例。
 3. redis在VM上会变慢，在docker容器中变化不大。
    
