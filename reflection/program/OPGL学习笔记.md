@@ -1,19 +1,30 @@
-## 词汇
+# 词汇
 
 https://www.jianshu.com/p/2f093554ad57
 
 https://www.jianshu.com/p/c33c7e2bdfd4
 
-- 顶点数组对象：Vertex Array Object，VAO
-- 顶点缓冲对象：Vertex Buffer Object，VBO
-- 索引缓冲对象：Element Buffer Object，EBO或Index Buffer Object，IBO
-- OpenGL着色器语言(OpenGL Shading Language, GLSL
+- **顶点数组对象：Vertex Array Object，VAO**
+- **顶点缓冲对象：Vertex Buffer Object，VBO**
+- **索引缓冲对象：Element Buffer Object，EBO或Index Buffer Object，IBO**
+- **OpenGL着色器语言(OpenGL Shading Language, GLSL**）
+- **透视：Perspective**
+- **视场：Field of View（FOV）** 
+- **标准化设备坐标(Normalized Device Coordinates, NDC)**： 顶点在通过在剪裁坐标系中剪裁与透视除法后最终呈现在的坐标系。所有位置在NDC下-1.0到1.0的顶点将不会被丢弃并且可见
+- **纹理缠绕(Texture Wrapping)**： 定义了一种当纹理顶点超出范围(0, 1)时指定OpenGL如何采样纹理的模式
+- **纹理过滤(Texture Filtering)**： 定义了一种当有多种纹素选择时指定OpenGL如何采样纹理的模式。这通常在纹理被放大情况下发生
+- **多级渐远纹理(Mipmaps)**： 被存储的材质的一些缩小版本，根据距观察者的距离会使用材质的合适大小
+- **向量(Vector)**： 一个定义了在空间中方向和/或位置的数学实体
+- **矩阵(Matrix)**： 一个矩形阵列的数学表达式
+- **环境光照：Ambient lighting**
+- **漫反射光照：Diffuse lighting**
+- **镜面光照：Specular lighting**
 
 
 
-## 基础
+# 静态认知基础
 
-#### 链路
+## 链路
 
 作者：Ritsuka ding
 链接：https://www.zhihu.com/question/66848391/answer/247151912
@@ -62,7 +73,7 @@ Unity3D，游戏引擎，内部包含渲染模块可以让用户能够更简单�
 
 
 
-#### 成像
+## 成像
 
 https://www.jianshu.com/p/0711c00be449
 
@@ -87,7 +98,7 @@ https://www.jianshu.com/p/0711c00be449
 
   
 
-#### 图形渲染
+## 图形渲染
 
 在OpenGL中，任何事物都在3D空间中，而屏幕和窗口却是2D像素数组，这导致OpenGL的大部分工作都是关于把3D坐标转变为适应你屏幕的2D像素。3D坐标转为2D坐标的处理过程是由OpenGL的图形渲染管线（Graphics Pipeline，大多译为管线，实际上指的是一堆原始图形数据途经一个输送管道，期间经过各种变化处理最终出现在屏幕的过程）管理的。图形渲染管线可以被划分为两个主要部分：第一部分把3D坐标转换为2D坐标，第二部分是把2D坐标转变为实际的有颜色的像素。
 
@@ -123,7 +134,7 @@ OpenGL需要你去指定这些数据所表示的渲染类型。我们是希望�
 
 
 
-#### 顶点缓存
+## 顶点
 
 https://blog.csdn.net/dcrmg/article/details/53556664
 
@@ -131,7 +142,7 @@ https://www.photoneray.com/opengl-vao-vbo/
 
 理解之后其实也不复杂。VBO是为了均衡数据的传输效率与灵活修改性；EBO是为了重组VBO中的数据，最终绘制所需要的顶点的个数没有变化，但对于重复使用的顶点只需要一份原始数据即可（多次绘制都是使用的索引而已）。然后VAO的本质是储存绘制状态，简化绘制代码。就是把VBO的数据绘制方式（数据的格式glVertexAttribPointer）给存起来了，等于是个半成品了（说白了就是可复用组件）。
 
-##### VBO  (Vertex Buffer Object)
+### VBO  (Vertex Buffer Object)
 
 顶点缓冲对象VBO是在显卡存储空间中开辟出的一块内存缓存区，用于存储顶点的各类属性信息，如顶点坐标，顶点法向量，顶点颜色数据等。在渲染时，可以直接从VBO中取出顶点的各类属性数据，由于VBO在显存而不是在内存中，不需要从CPU传输数据，处理效率更高。所以可以理解为VBO就是显存中的一个存储区域，可以保持大量的顶点属性信息。并且可以开辟很多个VBO，每个VBO在OpenGL中有它的唯一标识ID，这个ID对应着具体的VBO的显存地址，通过这个ID可以对特定的VBO内的数据进行存取操作。VBO本质上是一块服务端buffer（缓存），对应着client端的某份数据，在数据传输给VBO之后，client端的数据是可以删除的。系统会根据用户设置的 `target` 和 `usage` 来决定VBO最适合的存放位置（系统内存/AGP/显存）。*当然，GL规范是一回事，显卡厂商的驱动实现又是另一回事了*。
 
@@ -165,7 +176,7 @@ https://www.photoneray.com/opengl-vao-vbo/
 
    
 
-##### EBO （Element Buffer Object）
+### EBO （Element Buffer Object）
 
 索引缓冲对象EBO相当于OpenGL中的顶点数组的概念，是为了解决同一个顶点多次重复调用的问题，可以减少内存空间浪费，提高执行效率。当需要使用重复的顶点时，通过顶点的位置索引来调用顶点，而不是对重复的顶点信息重复记录，重复调用。EBO中存储的内容就是顶点位置的索引indices，EBO跟VBO类似，也是在显存中的一块内存缓冲器，只不过EBO保存的是顶点的索引。EBO+VBO等于是用组合的方式来增强表现力，减少冗余的数据。理论上顶点这种这么原始的表现方式，经过该点的线段有多少条那这个信息就会重复多少次，毕竟从实际的三维物体拆成各种表面再变成形状，这里面的数据重复量还是挺多的。
 
@@ -178,7 +189,7 @@ https://www.photoneray.com/opengl-vao-vbo/
 第三个参数是索引的数据类型；
 第四个参数是可选的EBO中偏移量设定。
 
-##### VAO (Vertex Array Object)
+### VAO (Vertex Array Object)
 
 顶点数组对象，但和Vertex Array（顶点数组）毫无联系（什么鬼，命名的时候完全不相干的概念随手就用）！VBO保存了一个模型的顶点属性信息，每次绘制模型之前需要绑定顶点的所有信息，当数据量很大时，重复这样的动作变得非常麻烦。VAO可以把这些所有的配置都存储在一个对象中，每次绘制模型时，只需要绑定这个VAO对象就可以了。VAO是一个保存了所有顶点数据属性的状态结合，它存储了顶点数据的格式以及顶点数据所需的VBO对象的引用。VAO本身并没有存储顶点的相关属性数据，这些信息是存储在VBO中的，VAO相当于是对很多个VBO的引用，把一些VBO组合在一起作为一个对象统一管理。可以看作索引与数据分离的表现形式，VAO本质上是state-object（状态对象）,记录的是一次绘制所需要的信息，包括数据在哪，数据格式之类的信息（*VBO, *EBO）。
 
@@ -191,7 +202,7 @@ glDrawArrays (GLenum mode, GLint first, GLsizei count)
 ```
 
 
-#### GLSL(图形领域DSL语言) 
+### GLSL(图形领域DSL语言) 
 
 看起来比较精简也很明确。参与的实体如下：
 
@@ -219,19 +230,90 @@ glCreateShader->glShaderSource->glCompileShader->glAttachShader->glLinkProgram->
     glLinkProgram(shaderProgramOrange);
 ```
 
-再抽象一点来看，其实就是浮点运算。三维坐标以及颜色三原色都抽象成了同一种数学模型，这个才是牛逼的地方（不知道是偶然还一种必然，RGB三原色不是唯一的正交基（对于人类，其他动物就不见得是正交的了），还可以有其他选择。只不过RGB能组合出来的颜色更为丰富。也许是因为二者都符合所谓的线性空间）。扩展阅读：
+与指令性程序相比（CPU串行流程），这里应该是多单元分工（GPU并行计算）的模型。
+
+与C++之间的数据交换也很清晰，uniform 关键字直接按照唯一的变量名称来交换数据，没有什么奇特的做法。
+
+## 颜色
+
+再抽象一点来看，三维坐标以及颜色三原色都抽象成了同一种数学模型，这个才是牛逼的地方（不知道是偶然还一种必然，RGB三原色不是唯一的正交基（对于人类，其他动物就不见得是正交的了），还可以有其他选择。只不过RGB能组合出来的颜色更为丰富。也许是因为二者都符合所谓的线性空间）。扩展阅读：
 
 https://www.zhihu.com/question/24886171
 
 https://www.jianshu.com/p/85c3f1cbcecb
 
-与指令性程序相比（CPU串行流程），这里应该是多单元分工（GPU并行计算）的模型。
+https://juejin.im/post/5ba352766fb9a05d353c72a8
 
-与C++之间的数据交换也很清晰，uniform 关键字直接按照唯一的变量名称来交换数据，没有什么奇特的做法。
+**加法是没有关系的颜色之间的叠加，而乘法是模拟光的照射过程。**
 
-#### 纹理
+### 分量乘法
 
-纹理坐标起始于(0, 0)，也就是纹理图片的左下角，终始于(1, 1)，即纹理图片的右上角。这种做法有点像是把颜色与位置再次正交化，顶点的纹理坐标变成新的维度，然后纹理就可以复用了。纹理坐标获取纹理颜色叫做采样(Sampling)，在采样坐标点后其他的值也会进行纹理的填充叫做插值（这跟颜色因该是一样的道理，只不过换了一种更加工程化的表现方式，就是把颜色数据给弄到一个二维矩阵里面去了）。
+光照射到一个物体表面时，是光的颜色和物体的颜色属性共同决定了照射后物体看起来是什么颜色。物体的贴图颜色可以理解为吸光的比率，光照和纹理的颜色一起做分量乘法来决定最终反射出去的关（也就是被观察到的颜色）。**三基色**：一般指的是颜料三原色，在纯白光照射下颜色为绛红、黄、青，简称 CMYK，属于**减色系（小于1的值越乘越小，被吸收之后变暗）**。**它们本身不发光，靠反光被看见**。由于材料吸收特定波段的光，所以只有不被吸收的部分反射了回来。加上的颜色越多吸收的光也越多。
+
+(R0, G0, B0) x (R1, G1, B1) = (R0R1, G0G1, B0B1)
+
+```
+fixed4 baseColor = tex2D( _MainTex, i.uv );//采样贴图对应uv坐标处的颜色
+baseColor = baseColor * _LightColor0 * (dot( worldNormal, worldLightDir )*0.5 + 0.5 );
+```
+
+### 加法
+
+**三原色**一般指的是红、绿、蓝三种，简称 RGB，这是**加色系（蚊子再小也是肉，叠加之后更亮）**。就是光源只含有特定的波段，本身就是**色光**，将不同颜色的光加在一起形成新的颜色。在计算最终颜色返回值时各种高光，漫反射，环境光这三部分的颜色用的是加法。自发光（emissive），环境光（ambient），漫反射（diffuse），高光反射（specular）这四个部分可以说是没有关系的，相互没有影响和交互，是四个独立的部分，所以最后使用加法来进行叠加。加法的值都是向1这个方向靠近的，也就是向白色方向靠近，约趋近白色也就表示越亮。各种光最后是一个叠加效果。
+
+```
+fixed4( diffuse + specular + ambient, 1.0 );
+```
+
+### 混合
+
+物体透明技术通常被叫做**混合(Blending)**，这个词用的也许不够精确（貌似windows上的API都是用opacity来描述透明度，再不济正常情况下transparent也比较常用）。
+
+这里先记录下透明度相关的信息：（Alpha通道的概念与功能）
+
+在计算机图形学中，一个RGB颜色模型的真彩图形，用由红、绿、蓝三个色彩信息通道合成的，每个通道用了8位色彩深度，共计24位，包含了所有彩色信息。为实现图形的透明效果，采取在图形文件的处理与存储中附加上另一个8位信息的方法，这个附加的代表图形中各个素点透明度的通道信息就被叫做Alpha通道。
+
+Alpha通道使用8位二进制数，就可以表示256级灰度，即256级的透明度。白色（值为255）的Alpha像素用以定义不透明的彩色像素，而黑色（值为0）的Alpha通道像素用以定义透明像素，介于黑白之间的灰度（值为30-255）的Alpha像素用以定义不同程度的半透明像素。因而通过一个32位总线的图形卡来显示带Alpha通道的图形，就可能呈现出透明或半透明的视觉效果。
+
+  一个透明或半透明图形的数学模型应当如下：
+
+为了便于下面的分析，设Alpha值[0，255]区间映射为[0，1]区间相对应的值表示，即Alpha值为0—1之间的数值。则图形文件中各个像素点可表示为：
+
+  Graphx（Redx，Greenx，Bulex，Alphax）
+
+  屏幕上相应像素点的显示值就转换为：
+
+  Dispx（Redx * Alphax，Greenx * Alphax，Bluex * Alphax）
+
+  Alpha通道不仅用于单个图形的透明或半透明显示，更重要的是在图像合成中被广泛运用。基于这里的运算规则，比较技术宅的命名方式混合就有点形象了。
+
+
+
+```c++
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+```
+
+$$
+\begin{equation}\bar{C}_{result} = \bar{\color{green}C}_{source} * \color{green}F_{source} + \bar{\color{red}C}_{destination} * \color{red}F_{destination}\end{equation}
+$$
+
+- Csource：源颜色向量。这是来自纹理的本来的颜色向量。
+- Cdestination：目标颜色向量。这是储存在颜色缓冲中当前位置的颜色向量。
+- FsourceFsource：源因子。设置了对源颜色的alpha值影响。
+- FdestinationFdestination：目标因子。设置了对目标颜色的alpha影响。
+
+在图片或视频滤镜中，一般不会直接使用加减乘除来做颜色混合。而是使用 mix() 函数，它的公式是：`x*(1−a)+y*a`，其实也是颜色相加，但是算上了一定的比重。这样不会因为一个白色的颜色和其他颜色相加后只有白色，现实世界中也不是这样的。混合也有线性和非线性的做法，看来也是套路。GLSL内建的mix函数需要接受两个值作为参数，并对它们根据第三个参数进行线性插值。如果第三个值是`0.0`，它会返回第一个输入；如果是`1.0`，会返回第二个输入值。`0.2`会返回`80%`的第一个输入颜色和`20%`的第二个输入颜色，即返回两个纹理的混合色。
+
+```
+FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.2);
+```
+
+没有透明物体时，依赖深度缓冲足以确认遮挡关系。但有透明物体时有特殊处理，因为写入深度缓冲的时候，深度测试不关心片段是否有透明度，所以靠前的透明部分被写入深度缓冲，后面的就被丢弃了。简单的做法时先绘制所有不透明物体然后为所有透明物体排序后按从远到近的顺序绘制透明物体。虽然这个按照它们的距离对物体进行排序的方法在这个特定的场景中能够良好工作，但它不能进行旋转、缩放或者进行其他的变换，奇怪形状的物体需要一种不同的方式，而不能简单的使用位置向量。在场景中排序物体是个有难度的技术，它很大程度上取决于你场景的类型，更不必说会耗费额外的处理能力了。完美地渲染带有透明和不透明的物体的场景并不那么容易。有更高级的技术例如次序无关透明度（order independent transparency）
+
+## 纹理
+
+纹理坐标起始于(0, 0)，也就是纹理图片的左下角，终始于(1, 1)，即纹理图片的右上角。这种做法有点像是把颜色与位置再次正交化，顶点的纹理坐标变成新的维度，然后纹理就可以复用了。纹理坐标获取纹理颜色叫做采样(Sampling, 类型：sampler1D,sampler2D,sampler3D)，在采样坐标点后其他的值也会进行纹理的填充叫做插值（这跟颜色因该是一样的道理，只不过换了一种更加工程化的表现方式，就是把颜色数据给弄到一个二维矩阵里面去了）。
 
 整个也是非常规整，先产生ID然后bind类型，
 
@@ -247,11 +329,35 @@ https://www.jianshu.com/p/85c3f1cbcecb
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
+    unsigned char *data = stbi_load(FileSystem::getPath("resources/textures/container.jpg").c_str(), &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 ```
 
-##### 纹理环绕（Texture Wrapping）
+glTexImage2D 参数茫茫多。老实说只有width， height， data这三比较有意义（清晰），其他的可以用默认值，然后提供设置接口就好了（正交）。
+
+- 第一个参数指定了纹理目标(Target)。设置为GL_TEXTURE_2D意味着会生成与当前绑定的纹理对象在同一个目标上的纹理（任何绑定到GL_TEXTURE_1D和GL_TEXTURE_3D的纹理不会受到影响）。
+- 第二个参数为纹理指定多级渐远纹理的级别，如果你希望单独手动设置每个多级渐远纹理的级别的话。这里我们填0，也就是基本级别。
+- 第三个参数告诉OpenGL我们希望把纹理储存为何种格式。我们的图像只有RGB值，因此我们也把纹理储存为RGB值。
+- 第四个和第五个参数设置最终的纹理的宽度和高度。我们之前加载图像的时候储存了它们，所以我们使用对应的变量。
+- 第六个参数应该总是被设为0（历史遗留的问题）。
+- 第七第八个参数定义了源图的格式和数据类型。我们使用RGB值加载这个图像，并把它们储存为char(byte)数组，我们将会传入对应值。
+- 第九个参数是真正的图像数据。
+
+
+
+然后纹理在使用的时候需要采样器，GL_TEXTURE0~GL_TEXTURE31（如果不显示指定则默认使用GL_TEXTURE0）。看这个做法似乎有问题，如果一个物体需要的纹理数量超过32会有什么问题呢？（Texture Atlas，纹理集合？压缩？这些目前暂不需要理解，不影响流程）
+
+        glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 2);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        
+        uniform sampler2D texture1;
+### 纹理环绕（Texture Wrapping）
 
 纹理坐标的范围通常是从(0, 0)到(1, 1)，但还有简单扩充方式。OpenGL默认的行为是重复这个纹理图像（基本上忽略浮点纹理坐标的整数部分），但OpenGL提供了更多的选择：
 
@@ -264,7 +370,7 @@ https://www.jianshu.com/p/85c3f1cbcecb
 
 实在点，纹理坐标如果超出纹理是取不到颜色数据的，但有些时候为了简单的复用数据就弄了个超出范围的环绕概念，推到或者指定这些超出范围的数据。在平铺式的纹理应用到大型几何图形的时候，非常有用。一个设计良好的无缝小型纹理紧挨着平铺到大型几何图形上看起来像是无缝的大型纹理(就是说重复型的纹理只需要一个小的子集即可，其他部分就可以自然扩展)。可以说环绕是一种扩展方式的技巧，以比较少的数据加上扩展项来推演更多的数据，是一种精确计算。
 
-##### 纹理过滤（Texture Filtering）
+### 纹理过滤（Texture Filtering）
 
 区别于环绕的精确计算，过滤在获取到环绕的精确值之后还需要进行细化调整。如果继续使用精确计算，在很大的物体上应用一张低分辨率的纹理的时候会出现某一块区域都选中同一个纹理点，就会出现像素格子失真的感觉。效果真实一些就需要做一些润色，把临近点的数据引入后加权运算。实际效果可能会出现模糊，因为临近点的区分度太小了看起来就会糊掉。
 
@@ -272,27 +378,475 @@ GL_NEAREST（也叫邻近过滤，Nearest Neighbor Filtering）是OpenGL默认�
 
 GL_LINEAR（也叫线性过滤，(Bi)linear Filtering）它会基于纹理坐标附近的纹理像素，计算出一个插值，近似出这些纹理像素之间的颜色。一个纹理像素的中心距离纹理坐标越近，那么这个纹理像素的颜色对最终的样本颜色的贡献越大。（4选4的游戏，有权重润色）。
 
-GL_TEXTURE_MIN_FILTER 是多个纹素对应一个片元的解决方案。GL_TEXTURE_MAG_FILTER 是没有足够的纹素来映射片元的解决方案。（老实讲纹理被缩小的时候使用邻近过滤，被放大时使用线性过滤这种难道要运行时去做判定吗？还是说引擎能够更加智能的选择，展示出比较好的效果）
+GL_TEXTURE_MIN_FILTER 是多个纹素对应一个片元的解决方案。
 
-## 其他概念
+GL_TEXTURE_MAG_FILTER 是没有足够的纹素来映射片元的解决方案。
 
-1.  Alpha通道的概念与功能
+### 多级渐远纹理（mipmap）
 
-   在计算机图形学中，一个RGB颜色模型的真彩图形，用由红、绿、蓝三个色彩信息通道合成的，每个通道用了8位色彩深度，共计24位，包含了所有彩色信息。为实现图形的透明效果，采取在图形文件的处理与存储中附加上另一个8位信息的方法，这个附加的代表图形中各个素点透明度的通道信息就被叫做Alpha通道。
+当同一个场景中相同的物体有远近之分的时候，如果统一使用相同的纹理数据在小物体上只取样很少的数据会有不真实感，而且浪费内存。多级简单来说就是一系列的纹理图像，后一个纹理图像是前一个的二分之一对应了各种距离（有范围上限，而且缩小到1*1其实也有点夸张）。多级渐远纹理背后的理念很简单：距观察者的距离超过一定的阈值，OpenGL会使用不同的多级渐远纹理，即最适合物体的距离的那个。由于距离远，解析度不高也不会被用户注意到。为了加快渲染速度和减少图像锯齿，贴图被处理成由一系列被预先计算和优化过的图片组成的文件, 这样的贴图被称为MIP map 或者mipmap。 “MIP”来自于拉丁语multum in parvo 的首字母，意思是“放置很多东西的小空间”。多级渐远纹理的加分之处是它的性能非常好，等于是把有规律的数据预先制作好，使用时按照规格直接取用。可以理解成用内存换显存，小规格的东西就不用全规格的资源了。
 
-   Alpha通道使用8位二进制数，就可以表示256级灰度，即256级的透明度。白色（值为255）的Alpha像素用以定义不透明的彩色像素，而黑色（值为0）的Alpha通道像素用以定义透明像素，介于黑白之间的灰度（值为30-255）的Alpha像素用以定义不同程度的半透明像素。因而通过一个32位总线的图形卡来显示带Alpha通道的图形，就可能呈现出透明或半透明的视觉效果。
+同样有邻近与线性两种取样方式：
 
-     一个透明或半透明图形的数学模型应当如下：
+| 过滤方式                  | 描述                                                         |
+| :------------------------ | :----------------------------------------------------------- |
+| GL_NEAREST_MIPMAP_NEAREST | 使用最邻近的多级渐远纹理来匹配像素大小，并使用邻近插值进行纹理采样 |
+| GL_LINEAR_MIPMAP_NEAREST  | 使用最邻近的多级渐远纹理级别，并使用线性插值进行采样         |
+| GL_NEAREST_MIPMAP_LINEAR  | 在两个最匹配像素大小的多级渐远纹理之间进行线性插值，使用邻近插值进行采样 |
+| GL_LINEAR_MIPMAP_LINEAR   | 在两个邻近的多级渐远纹理之间使用线性插值，并使用线性插值进行采样 |
 
-   为了便于下面的分析，设Alpha值[0，255]区间映射为[0，1]区间相对应的值表示，即Alpha值为0—1之间的数值。则图形文件中各个像素点可表示为：
+更多信息：
 
-     Graphx（Redx，Greenx，Bulex，Alphax）
+http://www.cppblog.com/wc250en007/archive/2011/08/06/152653.html
 
-     屏幕上相应像素点的显示值就转换为：
+https://www.zhihu.com/question/66993945
 
-     Dispx（Redx * Alphax，Greenx * Alphax，Bluex * Alphax）
 
-     Alpha通道不仅用于单个图形的透明或半透明显示，更重要的是在图像合成中被广泛运用。
+
+# 动态变换基础
+
+## 向量与矩阵
+
+静态认知基础中已经提到了空间与颜色向量的运算。偏数学的东西就写一下理解，不搬内容了。
+
+https://zhuanlan.zhihu.com/p/91311929(点乘与叉乘的推到过程)
+
+### 点乘
+
+向量的点乘,也叫向量的内积、数量积，对两个向量执行点乘运算，就是对这两个向量对应位一一相乘之后求和的操作，点乘的结果是一个标量。两个向量的点乘等于它们的数乘结果乘以两个向量之间夹角的余弦值。带角度的乘法，看的是协同效果（其实可以理解成计算角度）。
+$$
+\bar{v} \cdot \bar{k} = ||\bar{v}|| \cdot ||\bar{k}|| \cdot \cos \theta 
+\\[0.1in]
+\cos \theta = \frac{\bar{v} \cdot \bar{k}}{||\bar{v}|| \cdot ||\bar{k}||}
+$$
+
+$$
+\begin{pmatrix} \color{red}{0.6}, -\color{green}{0.8}, \color{blue}0 \end{pmatrix} \cdot \begin{pmatrix} \color{red}0 \\ \color{green}1 \\ \color{blue}0 \end{pmatrix} = (\color{red}{0.6} * \color{red}0) + (-\color{green}{0.8} * \color{green}1) + (\color{blue}0 * \color{blue}0) = -0.8
+$$
+
+
+### 叉乘
+
+两个向量的叉乘，又叫向量积、外积、叉积，叉乘的运算结果是一个向量而不是一个标量。并且两个向量的叉积与这两个向量组成的坐标平面垂直。叉乘只在3D空间中有定义，它需要两个不平行向量作为输入，生成一个正交于两个输入向量的第三个向量。如果输入的两个向量也是正交的，那么叉乘之后将会产生3个互相正交的向量。这个等于是维度变换，2条不平行的向量一定可以确定出一个平面，然后就可以找出这个平面的垂线（法向量）。
+$$
+\begin{pmatrix} \color{red}{A_{x}} \\ \color{green}{A_{y}} \\ \color{blue}{A_{z}} \end{pmatrix} \times \begin{pmatrix} \color{red}{B_{x}} \\ \color{green}{B_{y}} \\ \color{blue}{B_{z}}  \end{pmatrix} = \begin{pmatrix} \color{green}{A_{y}} \cdot \color{blue}{B_{z}} - \color{blue}{A_{z}} \cdot \color{green}{B_{y}} \\ \color{blue}{A_{z}} \cdot \color{red}{B_{x}} - \color{red}{A_{x}} \cdot \color{blue}{B_{z}} \\ \color{red}{A_{x}} \cdot \color{green}{B_{y}} - \color{green}{A_{y}} \cdot \color{red}{B_{x}} \end{pmatrix}
+$$
+
+### 移动，缩放，旋转
+
+移动的概念也比较简单，按照各个维度物体整体移动即可。
+
+向量与单位位向量相乘结果不变，与有倍率的向量相乘就产生了缩放效果。同比例就是均匀缩放，也有按照不同维度来缩放的。
+
+旋转要复杂一点，在3D空间中旋转需要定义一个角**和**一个旋转轴(Rotation Axis)。
+
+通常情况下都是复合变换，例如先缩放2倍，然后位移了(1, 2, 3)个单位。
+$$
+\begin{bmatrix} \color{red}2 & \color{red}0 & \color{red}0 & \color{red}1 \\ \color{green}0 & \color{green}2 & \color{green}0 & \color{green}2 \\ \color{blue}0 & \color{blue}0 & \color{blue}2 & \color{blue}3 \\ \color{purple}0 & \color{purple}0 & \color{purple}0 & \color{purple}1 \end{bmatrix} . \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix} = \begin{bmatrix} \color{red}2x + \color{red}1 \\ \color{green}2y + \color{green}2  \\ \color{blue}2z + \color{blue}3 \\ 1 \end{bmatrix}
+$$
+
+# 坐标系统
+
+## 变换
+
+OpenGL希望在每次顶点着色器运行后，我们可见的所有顶点都为标准化设备坐标(Normalized Device Coordinate, NDC)。也就是说，每个顶点的**x**，**y**，**z**坐标都应该在**-1.0**到**1.0**之间，超出这个坐标范围的顶点都将不可见。通常在顶点着色器中将这些坐标变换为标准化设备坐标，然后将这些标准化设备坐标传入光栅器(Rasterizer)，将它们变换为屏幕上的二维坐标或像素。就是顶点坐标是先标准化后再变成屏幕坐标的，这样做的好处应该是解耦，标准化之后在不同的屏幕上显示不同的效果。
+
+物体的顶点在最终转化为屏幕坐标之前还会被变换到多个坐标系统(Coordinate System)。将物体的坐标变换到几个**过渡**坐标系(Intermediate Coordinate System)的优点在于，在这些特定的坐标系统中，一些操作或运算更加方便和容易。比较重要的总共有5个不同的坐标系统：
+
+- 局部空间(Local Space，或者称为物体空间(Object Space))，是对象相对于局部原点的坐标
+- 世界空间(World Space)，物体相对于世界的全局原点，由模型矩阵(Model Matrix)来摆放一堆物体（就是虚拟的世界坐标，有了这个高一层的参照点物体之间才有相对位置的概念）
+- 观察空间(View Space，或者称为视觉空间(Eye Space))，是从摄像机角度进行观察的坐标，通常是一系列的位移和旋转的组合后由观察矩阵(View Matrix)来存储
+- 裁剪空间(Clip Space)，就是标准化到-1.0到1.0的范围内，判断哪些顶点将会出现在屏幕上。就是投影矩阵(Projection Matrix)来圈出可视范围（术语叫做**观察箱**(Viewing Box)，也被称为平截头体(Frustum)）。正交投影不论远近都以统一的方式投影在屏幕上。透视除法(Perspective Division)过程中我们将位置向量的x，y，z分量分别除以向量的齐次w分量（正交就是特例，w就是1），就会有透视投影中近大远小的效果了。因此NDC的顶点仅包含x、y和z三个信息。其中x、y表示规范化2D平面上的坐标，z则表示深度信息，也就是远近关系。根据x和y来显示顶点，并根据z信息来确定覆盖、遮挡关系。
+- 屏幕空间(Screen Space)。视口变换(Viewport Transform)将位于-1.0到1.0范围的坐标变换到由glViewport函数所定义的屏幕坐标范围内。最后变换出来的坐标将会送到光栅器，将其转化为片段。
+
+这就是一个顶点在最终被转化为片段之前需要经历的所有不同状态。
+
+```c++
+glm::mat4 scale         = glm::mat4(1.0f);
+glm::mat4 model         = glm::mat4(1.0f);
+glm::mat4 view          = glm::mat4(1.0f);
+glm::mat4 projection    = glm::mat4(1.0f); 
+model = glm::scale(scale, glm::vec3(scala_value, scala_value, scala_value));
+model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+projection = glm::perspective(glm::radians(projection_value), (float)SCR_WIDTH / (float)SCR_HEIGHT, 1.0f, 100.0f);
+
+gl_Position = projection * view * model * scale * vec4(aPos, 1.0);
+```
+
+glm::rotate的第三个参数时旋转的轴（1.0f, 0.0f, 0.0f）就是x轴正方向，然后旋转的角度时第一个参数glm::radians(-55.0f)即右手手握x轴大拇指握住的方向反向55度，就是朝里面旋转了。
+
+glm::perspective 视锥体的第一个参数fov的角度有放大和缩小的效果，只不过不是scala那样的线性。可以理解成为广角相机拍同一个景里面同一个人最后成像就变小了。因为背景更大了，相对来说人就变小了。
+
+矩阵的乘法是从右往左的，所以顺序是先缩放，再移位，再换到观察最后透视得到NDC。其实模型矩阵包括位移、缩放与旋转，这些明显是一个体系里面的概念。变换完成后模型才与观察，透视是一个数量级
+$$
+V_{clip} = M_{projection} \cdot M_{view} \cdot M_{model} \cdot V_{local}
+$$
+
+## 深度Z缓冲(Z-buffer)
+
+OpenGL存储它的所有深度信息于一个Z缓冲(Z-buffer)中，也被称为深度缓冲(Depth Buffer)。GLFW会自动为你生成这样一个缓冲（就像它也有一个颜色缓冲来存储输出图像的颜色）。深度值存储在每个片段里面（作为片段的**z**值），当片段想要输出它的颜色时，OpenGL会将它的深度值和z缓冲进行比较，如果当前的片段在其它片段之后，它将会被丢弃，否则将会覆盖（这里涉及浮点数的大小比较，也会有精度问题。某个画面可能处于显示与隐藏的边缘疯狂切换，学名叫做深度冲突）。这个过程称为深度测试(Depth Testing)，它是由OpenGL自动完成的，而且默认是关闭的。
+
+```c++
+glEnable(GL_DEPTH_TEST);  
+glDepthFunc(GL_LESS);  
+```
+
+| Function      | Description                                                  |
+| ------------- | ------------------------------------------------------------ |
+| `GL_ALWAYS`   | The depth test always passes.                                |
+| `GL_NEVER`    | The depth test never passes.                                 |
+| `GL_LESS`     | Passes if the fragment's depth value is less than the stored depth value. |
+| `GL_EQUAL`    | Passes if the fragment's depth value is equal to the stored depth value. |
+| `GL_LEQUAL`   | Passes if the fragment's depth value is less than or equal to the stored depth value. |
+| `GL_GREATER`  | Passes if the fragment's depth value is greater than the stored depth value. |
+| `GL_NOTEQUAL` | Passes if the fragment's depth value is not equal to the stored depth value. |
+| `GL_GEQUAL`   | Passes if the fragment's depth value is greater than or equal to the stored depth value. |
+
+简单可想而知深度决定了被观察的可见性，那之前物体的颜色（片段着色器）是要先确定的。这就是一个大问题，模型的片段着色器计算是一个独理的过程，开销跟物体的多少以及精密成都相关，有些显然被遮挡的物体是可以不去计算的。现在大部分的GPU都提供一个叫做提前深度测试(Early Depth Testing)的硬件特性。提前深度测试允许深度测试在片段着色器之前运行。如果一个片段永远不会是可见的（它在其他物体之后），我们就能提前丢弃这个片段。（片段着色器里不要写入片段的深度值，只有这样没有关联的情况下才能够提前确认物体的遮挡。）
+
+**@TODO可以脑补一下，如何去简单判断遮挡关系呢?**
+
+遮挡剔除 (Occlusion Culling) 本质上是这样一个过程——消耗一小部分 CPU 来去掉不可见的物体，不改变最终渲染的画面的同时，降低 GPU 的负载。
+
+https://www.zhihu.com/question/38060533
+
+### 深度精度
+
+深度缓冲包含了一个介于0.0和1.0之间的深度值，它将会与观察者视角所看见的场景中所有物体的z值进行比较。观察空间的z值可能是投影平截头体的**近平面**(Near)和**远平面**(Far)之间的任何值。我们需要一种方式来将这些观察空间的z值变换到[0, 1]范围之间，其中的一种方式就是将它们线性变换到[0, 1]范围之间（类似视口变化那样，用一个确定的范围来适应不同的输出设备）。
+$$
+\begin{equation} F_{depth} = \frac{z - near}{far - near} \end{equation}
+$$
+
+$$
+\begin{equation} F_{depth} = \frac{1/z - 1/near}{1/far - 1/near} \end{equation}
+$$
+
+按理说这个变换应该是线性的，光学成像就是这个原理。但考虑人的关注点（注意力），倾向于集中注意力在比较近的物体上，所以弄成了一个近似倒数的曲线（非线性精度）。
+
+### 深度冲突
+
+一个很常见的视觉错误会在两个平面或者三角形非常紧密地平行排列在一起时会发生，深度缓冲没有足够的精度来决定两个形状哪个在前面。结果就是这两个形状不断地在切换前后顺序，这会导致很奇怪的花纹。这个现象叫做深度冲突(Z-fighting)，因为它看起来像是这两个形状在争夺(Fight)谁该处于顶端。
+
+**不要把多个物体摆得太靠近，以至于它们的一些三角形会重叠**。手工活比较烦
+
+**尽可能将近平面设置远一些**。将近平面远离观察者，我们将会对整个平截头体有着更大的精度。然而，将近平面设置太远将会导致近处的物体被裁剪掉。经验活需要积累
+
+**使用更高精度的深度缓冲**。大部分深度缓冲的精度都是24位的，但现在大部分的显卡都支持32位的深度缓冲，这将会极大地提高精度。还是技术更新比较有生产力，这个精度提升足够了。虽然还是有浮点数的问题，但玩家要操作出这种场景就太难了。近似于消除问题了（概率小到一定程度在工程上认为解决了）
+
+
+
+# 摄像机
+
+OpenGL本身没有**摄像机**(Camera)的概念，但我们可以通过把场景中的所有物体往相反方向移动的方式来模拟出摄像机，产生一种摄像机移动的感觉，而不是场景在移动。定义一个摄像机，需要它在世界空间中的位置、观察的方向（指向z轴的负方向？）即可。有了观察方向之后就可以确定观察空间了，无非是再加上与观察方向垂直的平面来确定以摄像机的位置为原点的坐标系观察坐标系。OPGL一个指向它右测的向量以及一个指向它上方的向量。
+
+## 方向向量
+
+**方向**向量(Direction Vector)并不是最好的名字，因为它实际上指向从它到目标向量的相反方向。这玩意是一个逻辑概念，当从镜头观察物体时其实这个观察方向自然就出来了，只是因为坐标系的关系所以要弄一个反方向的方向向量出来，就是描述从物体的角度看摄像机这件事情。
+
+```c++
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f); 
+glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+glm::mat4 view;
+view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f),
+                   glm::vec3(0.0f, 0.0f, 0.0f),
+                   glm::vec3(0.0f, 1.0f, 0.0f));
+
+// Custom implementation of the LookAt function
+glm::mat4 lookAt(glm::vec3 position, glm::vec3 target, glm::vec3 worldUp)
+{
+    // 1. Position = known
+    // 2. Calculate cameraDirection
+    glm::vec3 zaxis = glm::normalize(position - target);
+    // 3. Get positive right axis vector
+    glm::vec3 xaxis = glm::normalize(glm::cross(glm::normalize(worldUp), zaxis));
+    // 4. Calculate camera up vector
+    glm::vec3 yaxis = glm::cross(zaxis, xaxis);
+
+    // Create translation and rotation matrix
+    // In glm we access elements as mat[col][row] due to column-major layout
+    glm::mat4 translation = glm::mat4(1.0f); // Identity matrix by default
+    translation[3][0] = -position.x; // Third column, first row
+    translation[3][1] = -position.y;
+    translation[3][2] = -position.z;
+    glm::mat4 rotation = glm::mat4(1.0f);
+    rotation[0][0] = xaxis.x; // First column, first row
+    rotation[1][0] = xaxis.y;
+    rotation[2][0] = xaxis.z;
+    rotation[0][1] = yaxis.x; // First column, second row
+    rotation[1][1] = yaxis.y;
+    rotation[2][1] = yaxis.z;
+    rotation[0][2] = zaxis.x; // First column, third row
+    rotation[1][2] = zaxis.y;
+    rotation[2][2] = zaxis.z; 
+
+    // Return lookAt matrix as combination of translation and rotation matrix
+    return rotation * translation; // Remember to read from right to left (first translation then rotation)
+}
+```
+
+$$
+LookAt = \begin{bmatrix} \color{red}{R_x} & \color{red}{R_y} & \color{red}{R_z} & 0 \\ \color{green}{U_x} & \color{green}{U_y} & \color{green}{U_z} & 0 \\ \color{blue}{D_x} & \color{blue}{D_y} & \color{blue}{D_z} & 0 \\ 0 & 0 & 0  & 1 \end{bmatrix} * \begin{bmatrix} 1 & 0 & 0 & -\color{purple}{P_x} \\ 0 & 1 & 0 & -\color{purple}{P_y} \\ 0 & 0 & 1 & -\color{purple}{P_z} \\ 0 & 0 & 0  & 1 \end{bmatrix}
+$$
+
+封装一下就可以将世界空间变到观察空间。其实这个东西比较好理解，就是原点的移动重合后（平移向量）然后z轴夹角归零的旋转即可。
+
+## 移动
+
+摄像机移动（场景移动也可以转换成摄像机移动）是FPS游戏的常规操作。一般是位置移动和角度移动。
+
+### 位置移动
+
+位置移动有一个速度的概念，例如物体的行走，奔跑，跳跃等等各种会导致屏幕画面的整体平移。这个很好理解，一个人注视某个方向的视野会随着人的移动产生变化，变化的是视野中边缘的部分（游戏中人物在夜晚以及白天视野范围不一样，而且移动后与物体的距离达到一定的值就会丢失视野。）这个可以理解成在路上开车，随着车的前进视野是一直在变化的。如果打方向盘，那就是角度变化了。再来一个例子，直升机在起飞降落的时候，直上直下的情况画面也是整体平移。（普通人应该是适应不了这种操作的，对高度的敏感是后天培养加上仪表的辅助锻炼出来的，而鸟类是有这个竖直维度的能力的）
+
+### 角度移动
+
+角度的概念也很好理解，人站在某个地方不动的情况下转圈就可以观察到前后左右360度的全部视野。让后低头抬头又可以观察到上下360度的全部视野。飞行员牛逼的地方在于坐在位置上搞定上下前后左右的视野，特别是战斗机飞行员在各种高负载的机动中眼观六面还要想办法进入攻击位置咬住敌方瞄准锁定，这样很容易明白优秀的飞行员比飞机值钱的多。再举个简单的例子，在FPS游戏中鼠标通常用于角度控制，最明显的是视野前方的狙击，一瞬间靠感觉调整好预估的水平角度和竖直角度，开镜再次精确移动后狙杀。
+
+还有一种不常见的角度变化，战斗机经常干的就是机腹朝天机头朝地倒着飞，这样绕着飞行线路旋转。**总结起来是俯仰角（pitch），偏航角（yaw）和滚转角**
+
+```c++
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    cameraFront = glm::normalize(front);
+```
+
+
+
+# 光照
+
+## 颜色
+
+现实世界中有无数种颜色，每一个物体都有它们自己的颜色。我们需要使用（有限的）数值来模拟真实世界中（无限）的颜色，所以并不是所有现实世界中的颜色都可以用数值来表示的。颜色可以数字化的由红色(Red)、绿色(Green)和蓝色(Blue)三个分量组成，这个是加色系的颜色表示方式，也就是叠加颜色来得到最终想要的颜色，是用来描述光线。白色的阳光实际上是所有可见颜色的集合（叠加到了极致就是全白了）。看到某一物体的颜色并不是这个物体真正拥有的颜色，而是它所反射的(Reflected)颜色。物体根据材质会吸收了其中的大部分颜色，仅反射了代表物体颜色的部分，被反射颜色的组合就是人眼所感知到的颜色。这个还是光线，只是变成减色系。也就是说外界光线先叠加到物体上是加色的过程，由于物体的材质对各种光进行反射是减色的过程。也就是说同一个物体再不同的光照下，被观察到的颜色是不一样的。
+
+```c++
+FragColor = vec4(lightColor * objectColor, 1.0);
+
+// 白光照射能够反射蓝光的物体，呈现蓝色
+lightingShader.setVec3("objectColor", 0.0f, 0.0f, 0.5f);
+lightingShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+
+// 红光照射能够反射蓝光的物体，呈现黑色
+lightingShader.setVec3("objectColor", 0.0f, 0.0f, 0.5f);
+lightingShader.setVec3("lightColor",  1.0f, 0.0f, 0.0f);
+```
+
+
+
+## 光照模型
+
+现实世界的光照是极其复杂的，而且会受到诸多因素的影响，难以全量模拟。其实这也不是个啥问题，就是当初提出这些概念的时候机器的计算能力不够，按照目前的显卡能力来讲确实可以去模拟但并不经济（精确计算的话又很大的运算量，而人眼的区分度就只有那样，降低了事情的难度了）。光照在不规则的物体上会往各个方向散射，部分散射光线会照到物体形成干扰与叠加。这个计算如果不考虑光强度减弱那就是一个无线循环，就是一个底数很大的阶乘谁都算不了。把光当成粒子（这里不用考虑波粒二象性）的话按照运动学的方式来做并行计算，一次发射出去的各种颜色的粒子（速度无限大没有能量碰撞损失）看有多少个返回观察点（成像区域）即可。类似物体的运动那样力学就有重力，摩檫力还有物体质量以及各种阻力和系数来决定车在路面的运动行为或者船在水里的运动行为。简单的做法是需要一个理论来抽象出几种简单的光源效果来模拟实际行为，就是有差距但不是那么的大不会轻易倍眼睛观察到。
+
+冯氏光照模型(Phong Lighting Model)主要结构由3个分量组成：环境(Ambient)、漫反射(Diffuse)和镜面(Specular)光照。
+
+- 环境光照(Ambient Lighting)：即使在黑暗的情况下，世界上通常也仍然有一些光亮（月亮、远处的光），所以物体几乎永远不会是完全黑暗的。为了模拟这个，我们会使用一个环境光照常量，它永远会给物体一些颜色。这个感觉像是保底的概念，说白了就是物体材质决定的成像效果，所以其比重并不大。
+- 漫反射光照(Diffuse Lighting)：模拟光源对物体的方向性影响(Directional Impact)。它是冯氏光照模型中视觉上最显著的分量。物体的某一部分越是正对着光源，它就会越亮。这个很好理解，就是正对光源的就直线反射回来容易落到观察区。这里应该是顶点决定了平面，然后与平面垂直的角度（这就又出现一个新的名字叫做法向量）决定了光照射过去后的分布集中的程度。法向量与光线的夹角就可以计算出一个分量来代表实际的照射量了（是指去的一样多的情况下，接收面积越小就越强，面积越大越分散。可以想象一下同等强度的电筒照水平射一个直角三角形的斜边和垂直边时二者成像的大小是角度的正弦值sinθ，垂直边的亮度高于斜边 ）。这个因素是源头（可以泛化一点理解成光粒子达到物体表面的数量），决定了物体用于反射的关粒子的数量。
+- 镜面光照(Specular Lighting)：模拟有光泽物体上面出现的亮点。镜面光照的颜色相比于物体的颜色会更倾向于光的颜色，这个的本意是物体的材质光滑的时候能够尽量多反射光线。其实倍看到的这个亮点还取决于观察点的方向。
+
+### 法向量
+
+法向量只是一个方向向量，不能表达空间中的特定位置。同时，法向量没有齐次坐标（顶点位置中的w分量）。应用一个不等比缩放时（注意：等比缩放不会破坏法线，因为法线的方向没被改变，仅仅改变了法线的长度，而这很容易通过标准化来修复），法向量就不会再垂直于对应的表面了，这样光照就会被破坏。修复这个行为的诀窍是使用一个为法向量专门定制的模型矩阵。这个矩阵称之为法线矩阵(Normal Matrix)：模型矩阵左上角的逆矩阵的转置矩阵（逆转置矩阵）
+
+```
+Normal = mat3(transpose(inverse(model))) * aNormal;
+```
+
+https://www.jianshu.com/p/5b861ab6ad7a
+
+https://zhuanlan.zhihu.com/p/110520337
+
+
+
+## 材质
+
+上面的镜面关照已经涉及到了材质的概念。有些物体反射光的时候不会有太多的散射(Scatter)，因而产生一个较小的高光点，而有些物体则会散射很多，产生一个有着更大半径的高光点。材质就是决定如题如何处理照射到的光粒子，针对冯氏模型那自然就有对环境光，漫反射光和镜面光的粒子的参数：
+
+```
+#version 330 core
+struct Material {
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+}; 
+
+uniform Material material;
+```
+
+ambient材质向量定义了在环境光照下这个物体反射得是什么颜色，通常这是和物体颜色相同的颜色。diffuse材质向量定义了在漫反射光照下物体的颜色。（和环境光照一样）漫反射颜色也要设置为我们需要的物体颜色。specular材质向量设置的是镜面光照对物体的颜色影响
+
+```c++
+void main()
+{    
+    // 环境光
+    vec3 ambient = lightColor * material.ambient;
+
+    // 漫反射 
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = lightColor * (diff * material.diffuse);
+
+    // 镜面光
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specular = lightColor * (spec * material.specular);  
+
+    vec3 result = ambient + diffuse + specular;
+    FragColor = vec4(result, 1.0);
+}
+```
+
+可以看到镜面光计算的选取强度shininess与观察角度和反射角度的点乘比较大的值的平方。
+
+## 光照贴图
+
+现实世界中的物体通常并不只包含有一种材质，而是由多种材质所组成。想想一辆汽车：它的外壳非常有光泽，车窗会部分反射周围的环境，轮胎不会那么有光泽，所以它没有镜面高光，轮毂非常闪亮（如果你洗车了的话）。汽车同样会有漫反射和环境光颜色，它们在整个物体上也不会是一样的，汽车有着许多种不同的环境光/漫反射颜色。总之，这样的物体在不同的部件上都有不同的材质属性。前面已经提到漫反射和镜面是比较主要的因素（其实漫反射应该是最主要的），正对这两种属性也来一个细节方案即可。引入**漫反射**和**镜面光**贴图(Map)对物体的漫反射分量和镜面光分量有着更精确的控制。其实还是一种暴力的穷举，就是把各个点的属性又弄出一个维度，计算的时候精确求值。
+
+```c++
+vec3 ambient  = light.ambient  * vec3(texture(material.diffuse, TexCoords));
+vec3 diffuse  = light.diffuse  * diff * vec3(texture(material.diffuse, TexCoords));  
+vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
+FragColor = vec4(ambient + diffuse + specular, 1.0);
+```
+
+在真实场景中，通常是把复杂物体的多个网格的各种贴图数据进行组合，按照数据的类型分成漫反射，高光和法向量3张图（其实就跟2D的做法类似，atlas的概念把多种资源整合到一起，然后弄个索引可以降低小资源的加载消耗）。
+
+## 光的类型
+
+其实就是光源的属性，前面物体的属性讲完了现在回到光源自身的属性。通常有点光源（节能灯），平行光（激光笔，或者长条形的日光管），聚光灯（手电筒）
+
+对于平行光，无所谓光源的位置，只有一个方向和强度的属性。理想情况下光照强度不会衰减，能量是集中的。
+
+而点光源是一个球型模型，强度跟光源与物体的距离有关（就是球体的表面积，S=4πr²）。
+
+https://blog.csdn.net/weixin_30399055/article/details/96374177
+
+至于为啥弄了个常数和一次项的因子在经验公式中，因该是为了计算方便
+$$
+\begin{equation} F_{att} = \frac{1.0}{K_c + K_l * d + K_q * d^2} \end{equation}
+$$
+
+- 常数项通常保持为1.0，它的主要作用是保证分母永远不会比1小，否则的话在某些距离上它反而会增加强度，这肯定不是我们想要的效果。说白了如果点光源的功率（所有的光能量）只会分摊，所以即使距离光源接近与0，强度也是低于这个阈值的。
+- 一次项会与距离值相乘，以线性的方式减少强度。这个应该是在比较仅的距离的时候方便计算，这时候二次方的影响比较小。
+- 二次项会与距离的平方相乘，让光源以二次递减的方式减少强度。二次项在距离比较小的时候影响会比一次项小很多，但当距离值比较大的时候它就会比一次项更大了。
+
+聚光灯是一个有夹角的光源，这个也比较容易理解成一个有散射的近似平行光源。例如手电筒随着照射距离其覆盖面逐步变大。所以这里的强度就与夹角和距离有关。至于边缘平滑的聚光，通过内圆锥(Inner Cone)和一个外圆锥(Outer Cone）来划出一个圆环来表示边缘部分的强度变化（从1到0）其实也是在考虑现实中空气的散射以及物体表面的反射之类的因素。
+
+# 模型
+
+模型通常都由3D艺术家在[Blender](http://www.blender.org/)、[3DS Max](http://www.autodesk.nl/products/3ds-max/overview)或者[Maya](http://www.autodesk.com/products/autodesk-maya/overview)这样的工具中精心制作。这些所谓的3D建模工具(3D Modeling Tool)可以让艺术家创建复杂的形状，并使用一种叫做UV映射(uv-mapping)的手段来应用贴图。这些工具将会在导出到模型文件的时候自动生成所有的顶点坐标、顶点法线以及纹理坐标。当使用建模工具对物体建模的时候，通常不会用单个形状创建出整个模型，每个模型都由几个子模型/形状组合而成。组合模型的每个单独的形状就叫做一个网格(Mesh)。比如说有一个人形的角色：头部、四肢、衣服、武器建模为分开的组件，并将这些网格组合而成的结果表现为最终的模型。
+
+一个网格是我们在OpenGL中绘制物体所需的最小单位（顶点数据、索引和材质属性）。一个模型（通常）会包括多个网格。直接上代码看模型与网格的关系（类似顶层节点与实体，是工程上的组织方式以及标准，不涉及物理原理）：
+
+```c++
+class Mesh {
+public:
+    // mesh Data
+    vector<Vertex>       vertices;
+    vector<unsigned int> indices;
+    vector<Texture>      textures;
+    unsigned int VAO;
+
+    // constructor
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+
+    // render the mesh
+    void Draw(Shader &shader) 
+}
+
+class Model 
+{
+public:
+    // model data 
+    vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+    vector<Mesh>    meshes;
+    string directory;
+    bool gammaCorrection;
+
+    // constructor, expects a filepath to a 3D model.
+    Model(string const &path, bool gamma = false) : gammaCorrection(gamma)
+    {
+        loadModel(path);
+    }
+
+    // draws the model, and thus all its meshes
+    void Draw(Shader &shader)
+    {
+        for(unsigned int i = 0; i < meshes.size(); i++)
+            meshes[i].Draw(shader);
+    }
+}
+```
+
+# 高级特性
+
+## 模板（轮廓）测试
+
+当片段着色器处理完片段之后，**模板测试(Stencil Test)** 就开始执行了，和深度测试一样，它能丢弃一些片段。仍然保留下来的片段进入深度测试阶段，深度测试可能丢弃更多。模板测试基于另一个缓冲，这个缓冲叫做**模板缓冲(Stencil Buffer)** 模板缓冲中的**模板值(Stencil Value)**通常是8位的，因此每个片段/像素共有256种不同的模板值（译注：8位就是1字节大小，因此和char的容量一样是256个不同值）。这样我们就能将这些模板值设置为我们链接的，然后在模板测试时根据这个模板值，我们就可以决定丢弃或保留它了。
+
+这一段是原话，理解起来是比较费劲的（实际用途：https://www.zhihu.com/question/319943763）。用法取决于其本质的概念，这个测试在整个教程中都是一个裁剪效果。可以用于判定什么显示什么不显示，只不过这个就特别像物体的轮廓的裁剪。这个看起来就很像是模具开模的过程了，用个稍大一点的把中间实际大小的给挖掉就变成一个有薄壁的模具了。举个不那么贴切的例子，狙击枪开镜就是一种模板操作，就是把狙击镜中的画面留下了，目镜以外的其他视野全部都丢了。
+
+代码层面glStencilFunc跟深度缓冲glDepthFunc很类似，其参数是一致的就是换了个属性维度。GL_NEVER`、`GL_LEQUAL`、`GL_GREATER`、`GL_GEQUAL`、`GL_EQUAL`、`GL_NOTEQUAL`、`GL_ALWAYS
+
+```c++
+glEnable(GL_DEPTH_TEST);
+glDepthFunc(GL_LESS);
+glEnable(GL_STENCIL_TEST);
+glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+glStencilMask(0xFF);
+glStencilFunc(GL_ALWAYS, 0, 0xFF);
+glEnable(GL_DEPTH_TEST);
+```
+
+但glStencilOp是描述如何更新模板缓冲，这个是深度缓冲没有的概念。深度比较单一，通过测试就显示，通不过就丢弃了。
+
+`void glStencilOp(GLenum sfail, GLenum dpfail, GLenum dppass)`函数包含三个选项，我们可以指定每个选项的动作：
+
+- **sfail**： 如果模板测试失败将采取的动作。
+- **dpfail**： 如果模板测试通过，但是深度测试失败时采取的动作。
+- **dppass**： 如果深度测试和模板测试都通过，将采取的动作。
+
+每个选项都可以使用下列任何一个动作。
+
+| 操作         | 描述                                                         |
+| ------------ | ------------------------------------------------------------ |
+| GL_KEEP      | 保持现有的模板值                                             |
+| GL_ZERO      | 将模板值置为0                                                |
+| GL_REPLACE   | 将模板值设置为用`glStencilFunc`函数设置的**ref**值           |
+| GL_INCR      | 如果模板值不是最大值就将模板值+1                             |
+| GL_INCR_WRAP | 与`GL_INCR`一样将模板值+1，如果模板值已经是最大值则设为0     |
+| GL_DECR      | 如果模板值不是最小值就将模板值-1                             |
+| GL_DECR_WRAP | 与`GL_DECR`一样将模板值-1，如果模板值已经是最小值则设为最大值 |
+| GL_INVERT    | Bitwise inverts the current stencil buffer value.            |
+
+`glStencilOp`函数默认设置为 (GL_KEEP, GL_KEEP, GL_KEEP) ，所以任何测试的任何结果，模板缓冲都会保留它的值。
+
+## 面剔除（Face culling）
+
+从一个立方体的任意位置和方向上去看它，永远不能看到多于3个面。所以不需要去绘制那三个不会显示出来的面。其实就跟物体的正面能够被观察到，但是背面时被物体自身所遮挡的。这个严格来讲也是深度的概念，不透明的物体严格依照深度来判定遮挡关系。其实所谓的物体正面背面时取决于观察者的位置的，如果换个方向后原来的物体背面就变成正面了（在观察者换了方向之后，原反向上看的背面的顶点方向也逆向变成顺时针，自然就变成可见的正面了）。
+
+
+
+## 帧缓冲（FrameBuffer）
+
+用于写入颜色值的颜色缓冲，用于写入深度信息的深度缓冲，以及允许我们基于一些条件丢弃指定片段的模板缓冲。这些常规操作直接操作用于屏幕的帧，如果后续所有渲染操作将渲染到当前绑定的帧缓冲的附加缓冲中，渲染命令对窗口的视频输出不会产生任何影响。出于这个原因，它被称为离屏渲染（off-screen rendering）。其实所谓的离屏是一个视觉上的概念，所有的渲染过程都没有特殊性，只是东西没有更新到屏幕而已，等于没有获取焦点的后台程序，有数据但是不体现在交互上。
+
+
+
+# 其他概念
+
+
 
 
 
