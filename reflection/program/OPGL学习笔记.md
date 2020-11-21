@@ -1,3 +1,7 @@
+
+
+
+
 # 词汇
 
 https://www.jianshu.com/p/2f093554ad57
@@ -232,7 +236,34 @@ glCreateShader->glShaderSource->glCompileShader->glAttachShader->glLinkProgram->
 
 与指令性程序相比（CPU串行流程），这里应该是多单元分工（GPU并行计算）的模型。
 
-与C++之间的数据交换也很清晰，uniform 关键字直接按照唯一的变量名称来交换数据，没有什么奇特的做法。
+与C++之间的数据交换也很清晰，uniform 关键字直接按照唯一的变量名称来交换数据，没有什么奇特的做法。复杂点的给多个shader使用的uniform块是一个数据结构，对应关系是绑定点（binding points）的形式：
+
+```c++
+// first. We get the relevant block indices
+unsigned int uniformBlockIndexRed = glGetUniformBlockIndex(shaderRed.ID, "Matrices");
+// then we link each shader's uniform block to this uniform binding point
+glUniformBlockBinding(shaderRed.ID, uniformBlockIndexRed, 0);
+```
+
+可以理解成每个shader都持有一个缓冲的引用，需要显示的指定每个引用指向的真实缓冲块。除了自定义变量以外GLSL提供一些标准变量
+
+输出型：
+
+gl_Position：设置顶点位置（这个最常见了）
+
+gl_PointSize：设置顶点大小（粒子效果）
+
+gl_FragDepth：片段深度值（着色器中没有像gl_FragDepth变量写入，它就会自动采用gl_FragCoord.z的值）
+
+输入型：
+
+gl_VertexID：当前顶点的ID（貌似没啥作用）
+
+gl_FragCoord：片段着色器当前顶点（有坐标和深度值）
+
+gl_FrontFacing：片段着色器中正反面标记（以前是用顶点顺时针逆时针来判定的）
+
+
 
 ## 颜色
 
@@ -478,10 +509,48 @@ glm::rotate的第三个参数时旋转的轴（1.0f, 0.0f, 0.0f）就是x轴正�
 
 glm::perspective 视锥体的第一个参数fov的角度有放大和缩小的效果，只不过不是scala那样的线性。可以理解成为广角相机拍同一个景里面同一个人最后成像就变小了。因为背景更大了，相对来说人就变小了。
 
-矩阵的乘法是从右往左的，所以顺序是先缩放，再移位，再换到观察最后透视得到NDC。其实模型矩阵包括位移、缩放与旋转，这些明显是一个体系里面的概念。变换完成后模型才与观察，透视是一个数量级
+矩阵的乘法是从右往左的，所以顺序是先缩放，再移位，再换到观察最后透视得到NDC。其实模型矩阵包括位移、缩放与旋转，这些明显是一个体系里面的概念。变换完成后模型才与观察，透视是一个概念级别的。
 $$
 V_{clip} = M_{projection} \cdot M_{view} \cdot M_{model} \cdot V_{local}
 $$
+
+## 投影
+
+移动，缩放等变换是非常符合直观思维的，观察系的变换就再加一个旋转即可。这些都不涉及到形变，很容易理解。投影中正交投影也不涉及形变是一种纯展示，而透视则有近大远小的效果。再举个简单的例子，新闻联播上一直挂着个CCTV1的标记，这个标记不管节目内容如何变化都是一成不变的，就像这个标记贴在屏幕上的感觉（游戏中的UI界面）。节目效果在各种场景一直在变（游戏中当前帧）。例如主持人近身播报，现场面对面采访都是大头像，各种规划效果之类的远景拍摄或者航拍都是小小的。这个东西的本质就是作为屏幕，这是一个有限的固定的输出设备，当有更多的东西要展示到这个固定的框内的时候，必须有一个缩放，而根据视觉成像的原理就是把场景往原处放，直到观察者刚好看到整个场景（尽收眼底）的时候。
+
+从代码来看，这个也很清晰。观察者摄像头的镜头角度，投影屏幕的宽高比例以及z轴近点和远点就可以确认投影矩阵了。其实也比较容易理解，就是镜头角度一半的正切（tangent）
+
+```c++
+glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+template<typename T>
+GLM_FUNC_QUALIFIER mat<4, 4, T, defaultp> perspectiveLH_NO(T fovy, T aspect, T zNear, T zFar)
+{
+    assert(abs(aspect - std::numeric_limits<T>::epsilon()) > static_cast<T>(0));
+
+    T const tanHalfFovy = tan(fovy / static_cast<T>(2));
+
+    mat<4, 4, T, defaultp> Result(static_cast<T>(0));
+    Result[0][0] = static_cast<T>(1) / (aspect * tanHalfFovy);
+    Result[1][1] = static_cast<T>(1) / (tanHalfFovy);
+    Result[2][2] = (zFar + zNear) / (zFar - zNear);
+    Result[2][3] = static_cast<T>(1);
+    Result[3][2] = - (static_cast<T>(2) * zFar * zNear) / (zFar - zNear);
+    return Result;
+}
+```
+
+透视投影公式(n:near, f:far, r:视锥体高度半径 , t:视锥体宽度半径)：
+$$
+\begin{bmatrix} \color{red}n/r & \color{red}0 & \color{red}0 & \color{red}0 \\ \color{green}0 & \color{green}n/t & \color{green}0 & \color{green}0 \\ \color{blue}0 & \color{blue}0 & \color{blue}-(f+n)/f-n & \color{blue}-2f*n/(f-n) \\ \color{purple}0 & \color{purple}0 & \color{purple}-1 & \color{purple}0 \end{bmatrix}
+$$
+推导：
+
+http://www.songho.ca/opengl/gl_projectionmatrix.html
+
+https://blog.csdn.net/tanmx219/article/details/81407264
+
+
 
 ## 深度Z缓冲(Z-buffer)
 
@@ -841,6 +910,148 @@ glEnable(GL_DEPTH_TEST);
 ## 帧缓冲（FrameBuffer）
 
 用于写入颜色值的颜色缓冲，用于写入深度信息的深度缓冲，以及允许我们基于一些条件丢弃指定片段的模板缓冲。这些常规操作直接操作用于屏幕的帧，如果后续所有渲染操作将渲染到当前绑定的帧缓冲的附加缓冲中，渲染命令对窗口的视频输出不会产生任何影响。出于这个原因，它被称为离屏渲染（off-screen rendering）。其实所谓的离屏是一个视觉上的概念，所有的渲染过程都没有特殊性，只是东西没有更新到屏幕而已，等于没有获取焦点的后台程序，有数据但是不体现在交互上。
+
+
+
+## 后处理（post processing）
+
+在已经取得了渲染输出的每个颜色之后，在片段着色器里各种组合或者操作这些颜色是很容易的。这个就是看情况弄出各种视觉或者风格特效了。
+
+
+
+## 立方体贴图（cube map）
+
+这个概念的描述并不是很贴切，就不引用原文了。如果把它理解成环境贴图可能精确一些，其实也不是所有的环境都是立方体，但抽象一下就是眼观六面（上下左右前后）。这6张图的要求可是不低的，目视任何一个维度然后转身360°都能够看到一个连续的画面，举例说绕着y轴360转（偏航角）的前，右，后，左4张图是可以拼接成一个圆形的。然后绕着z轴360转（滚转角）的上，右，下，左是圆形。最后绕着x轴360°转（俯仰角）上，前，下，后也是圆形。
+
+```c++
+vector<std::string> faces
+{
+    FileSystem::getPath("resources/textures/skybox/right.jpg"),
+    FileSystem::getPath("resources/textures/skybox/left.jpg"),
+    FileSystem::getPath("resources/textures/skybox/top.jpg"),
+    FileSystem::getPath("resources/textures/skybox/bottom.jpg"),
+    FileSystem::getPath("resources/textures/skybox/front.jpg"),
+    FileSystem::getPath("resources/textures/skybox/back.jpg")
+};
+```
+
+| 纹理目标（Texture target）     | 方位 |
+| ------------------------------ | ---- |
+| GL_TEXTURE_CUBE_MAP_POSITIVE_X | 右   |
+| GL_TEXTURE_CUBE_MAP_NEGATIVE_X | 左   |
+| GL_TEXTURE_CUBE_MAP_POSITIVE_Y | 上   |
+| GL_TEXTURE_CUBE_MAP_NEGATIVE_Y | 下   |
+| GL_TEXTURE_CUBE_MAP_POSITIVE_Z | 后   |
+| GL_TEXTURE_CUBE_MAP_NEGATIVE_Z | 前   |
+
+这种用法下，只需要一个观察方向就可以决定整个环境的纹理，整个大背景完全不受移动的影响（营造出类似大背景的感觉，但方向不动的情况下，背景其实一点都没有变化），这个用法叫做天空盒子（sky box）。
+
+在代码层面的处理也比较讨巧。深度测试默认是小于，然后天空盒使用的小于等于。xyww的设置让透视投影后z是1.0。这样但凡有个场景内的物体被渲染都会在天空盒的前面，既不会被盒子遮挡，而且盒子刚好通过测试也能够被显示出来。
+
+```c++
+glDepthFunc(GL_LEQUAL);
+
+void main()
+{
+    vec4 pos = projection * view * vec4(position, 1.0);
+    gl_Position = pos.xyww;
+    TexCoords = position;
+}
+```
+
+### 环境映射
+
+#### 反射
+
+反射环境也不太清楚是什么具体用法。前面帧缓冲中有涉及到反向观察物体。这里把环境当成物体的一种，也是算出了反方向的纹理。这种技术的用处一般应该是倒视镜之类的游戏中。
+
+#### 折射
+
+这个理论上讲是非常有意义的。即使是空气也会折射和散射光线（空气中的水汽，云层，雨水），这样才有更真实的效果。除了环境会折射，场景中的各种物体例如水，玻璃，钻石之类的能够让光线通过的都会有改变光线角度以及降低光线的强度等等。
+
+
+
+## 几何着色器(Geometry Shader)
+
+在顶点和片段着色器之间的一个可选的着色器。有意思的地方在于它可以把（一个或多个）顶点转变为完全不同的基本图形（primitive），从而生成比原来多得多的顶点。其实就是一个特定程序，用来自动生成顶点，其实还是顶点着色器的范畴。
+
+
+
+### 实例化
+
+这也是一个集中发送CPU到GPU数据的思想的体现。OpenGL在它可以绘制你的顶点数据之前必须做一些准备工作(比如告诉GPU从哪个缓冲读取数据，以及在哪里找到顶点属性，所有这些都会使CPU到GPU的总线变慢)。所以即使渲染顶点超快，而多次给你的GPU下达这样的渲染命令却未必。如果需要大量的绘制同一个物体在不同的位置就又意义了。等于一个绘制函数，一个物体数据，然后再自定义一个uniform位置变量（数组存了一堆偏移向量），顶点着色器就可以通过gl_InstanceID这个物体的索引来应用偏移量，画出多个物体。
+
+```c++
+for(unsigned int i = 0; i < 100; i++)
+{
+    shader.setVec2(("offsets[" + std::to_string(i) + "]")), translations[i]);
+}
+
+glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 100);  
+```
+
+这个跟glDrawArrays是一个概念，多了一个参数100表示要画出的实例的个数。
+
+
+
+## 抗锯齿技术(Anti-aliasing）
+
+**锯齿边(Jagged Edge)**出现的原因是由顶点数据像素化之后成为片段的方式所引起的。从原理入手，光栅化顶点和片段着色器之间的所有算法和处理的集合。光栅化将属于一个基本图形的所有顶点转化为一系列片段。顶点坐标理论上可以含有任何坐标，但片段却不是这样，这是因为它们与你的窗口的解析度有关。光栅化必须以某种方式决定每个特定顶点最终结束于哪个片段/屏幕坐标上，这种多对少的映射关系决定了边缘部分相对近的顶点总会出现割裂。由于屏幕像素总量的限制，有些边上的像素能被渲染出来，而有些则不会体现出来的效果就是放大后的锯齿感。
+
+**多采样抗锯齿(Multisample Anti-aliasing)**MSAA的真正工作方式是，每个像素只运行一次片段着色器，无论多少子样本被三角形所覆盖。片段着色器运行着插值到像素中心的顶点数据，最后颜色被储存近每个被覆盖的子样本中，每个像素的所有颜色接着将平均化，每个像素最终有了一个唯一颜色。这个技术比较自然，精度问题的处理方式自然是提高计算精度（在不明显增加计算量的前提下）。屏幕上一个点由0/1的状态（三角形计算这个点的中心是否在三角形内）变成了N个状态。只要采样点变多，那是否在三角形内以及在内的采样点的个数就变得有意义了。个数大于0可以决定像素点被使用，然后在内的采样点的个数与采样N的关系还可以决定像素的颜色。
+
+付出的代价是为每个像素储存一个以上的颜色值的颜色缓冲(因为多采样需要我们为每个采样点储存一个颜色)。这就需要一个新的缓冲类型，它可以储存要求数量的多重采样样本，它叫做**多样本缓冲(Multisample Buffer)**。算是空间换时间的一种做法。
+
+
+
+引申一下这个话题：FXAA、FSAA与MSAA有什么区别
+
+https://www.zhihu.com/question/20236638
+
+锯齿的来源是因为场景的定义在三维空间中是连续的，而最终显示的像素则是一个离散的二维数组。所以判断一个点到底没有被某个像素覆盖的时候单纯是一个“有”或者“没有"问题，丢失了连续性的信息，导致锯齿。
+
+最直接的抗锯齿方法就是SSAA（Super Sampling AA）。拿4xSSAA举例子，假设最终屏幕输出的分辨率是800x600, 4xSSAA就会先渲染到一个分辨率1600x1200的buffer上，然后再直接把这个放大4倍的buffer下采样致800x600。这种做法在数学上是最完美的抗锯齿。但是劣势也很明显，光栅化和着色的计算负荷都比原来多了4倍，render target的大小也涨了4倍。
+
+MSAA（Multi-Sampling AA）则很聪明的只是在光栅化阶段，判断一个三角形是否被像素覆盖的时候会计算多个覆盖样本（Coverage sample），但是在pixel shader着色阶段计算像素颜色的时候每个像素还是只计算一次。
+
+Post Processing AA这一类技术。这一类东西包括FXAA，TXAA等，不依赖于任何硬件，完全用图像处理的方法来搞。有可能会依赖于一些其他的信息例如motion vector buffer或者前一贞的变换矩阵来找到上一贞像素对应的位置，就是主动探测出边缘，然后对边缘的锯齿进行平滑补偿（肯恩不太精确但省事，毕竟人的观察能力是很有限的）。
+
+有句话说的挺好，抗锯齿只不过是分辨率不够高之前做的一个安慰剂。以后2k/4K屏幕和对应级别的显卡都会成为普通产品，自然就不会出现屏幕像素点太少了以至于边缘锯齿轻易被人眼观察到。比如说手机这种屏幕小分辨率还高的外设，压根就不用在乎锯齿。
+
+
+
+## 法线贴图（normal mapping）
+
+https://zhuanlan.zhihu.com/p/102131805
+
+法线如果是基于面来说是一个很确定的东西，问题是两个面的边缘共顶点的时候怎么做？这里有两个新概念，**模型空间法线贴图**和**切线空间法线贴图**。正常（无双关）的成分范围为`[-1, 1]`。但是图像中颜色的成分范围为`[0, 1]`（或`[0, 255]`通常将其标准化为`[0, 1]`）。因此对法线进行缩放和偏移，使法线`(0, 0, 1)`变为颜色`(0.5, 0.5, 1)`。这是您在法线贴图中看到的浅蓝色，并且在使用切线空间法线时表示与插值顶点法线没有偏差。
+
+法线贴图技术仅仅是让三角形渲染的时候，多了一个真实的法线值，用于做光照计算，而不能增加顶点值。因为一般时候，顶点值在计算光照的时候都用不到。
+
+那么，是不是所有的复杂模型都可以用法线贴图来解决呢？当然是不可能的。说穿了，法线贴图仅仅是简单的视觉欺骗，一旦凹凸太明显的模型，使用了法线贴图，太靠近的时候，就穿帮了。所以，适用于法线贴图的场合，主要就是凹凸不太明显，细节很多，需要表现实时光照效果，不会太靠近观察的物体。
+
+
+
+
+
+# 高级光照
+
+## Blinn-Phong
+
+冯氏光照模型已经不错了，这个算是一个改进型。原因是冯氏在镜面反射在某些条件下会失效，视线向量和反射向量的角度大于90度的话，点乘的结果就会是负数，镜面的贡献成分就会变成0。表现就是镜面区域边缘迅速减弱并截止，效果不太自然。用法线向量和半程向量(光源方向和视线向量的角平分线)来替换的精髓在于法向量。法向量与镜面是垂直关系，与其他向量的点乘不会变成负数。而且半程向量的计算更简单，相加后归一即可。反射向量则需要用到三角函数。
+
+```c++
+    if(blinn)
+    {
+        vec3 halfwayDir = normalize(lightDir + viewDir);  
+        spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+    }
+    else
+    {
+        vec3 reflectDir = reflect(-lightDir, normal);
+        spec = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
+    }
+```
 
 
 
