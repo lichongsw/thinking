@@ -54,8 +54,15 @@ def get_chunk(audio_source, chunk_size=1024):
     yield chunk
 
 # build pronunciation assessment parameters
-referenceText = "Good morning."
+# referenceText = "Good morning."
+referenceText = "Hello."
+
+# audioFile = open('goodmorning.pcm', 'rb')
+audioFile = open('hello.pcm', 'rb')
+
+
 pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\"}" % referenceText
+print("pronAssessmentParamsJson:", pronAssessmentParamsJson)
 pronAssessmentParamsBase64 = base64.b64encode(bytes(pronAssessmentParamsJson, 'utf-8'))
 pronAssessmentParams = str(pronAssessmentParamsBase64, "utf-8")
 
@@ -64,13 +71,13 @@ url = "https://%s.stt.speech.microsoft.com/speech/recognition/conversation/cogni
 print("url:", url)
 headers = { 'Accept': 'application/json;text/xml',
             'Connection': 'Keep-Alive',
+            # 'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
             'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
             'Ocp-Apim-Subscription-Key': subscriptionKey,
             'Pronunciation-Assessment': pronAssessmentParams,
             'Transfer-Encoding': 'chunked',
             'Expect': '100-continue' }
 print("headers:", headers)
-audioFile = open('goodmorning.pcm', 'rb')
 
 # send request with chunked data
 response = requests.post(url=url, data=get_chunk(audioFile), headers=headers)
