@@ -1,0 +1,71 @@
+{
+    "RecognitionStatus": "Success",
+    "Offset": 400000,
+    "Duration": 5400000,
+    "NBest": [
+        {
+            "Confidence": 0.99161875,
+            "Lexical": "Hello",
+            "ITN": "Hello",
+            "MaskedITN": "hello",
+            "Display": "Hello.",
+            "AccuracyScore": 100.0,
+            "FluencyScore": 100.0,
+            "CompletenessScore": 100.0,
+            "PronScore": 100.0,
+            "Words": [
+                {
+                    "Word": "Hello",
+                    "Offset": 400000,
+                    "Duration": 5400000,
+                    "Confidence": 0.0,
+                    "AccuracyScore": 100.0,
+                    "ErrorType": "None",
+                    "Syllables": [
+                        {
+                            "Syllable": "hax",
+                            "Grapheme": "hel",
+                            "Offset": 400000,
+                            "Duration": 1900000,
+                            "AccuracyScore": 100.0
+                        },
+                        {
+                            "Syllable": "low",
+                            "Grapheme": "lo",
+                            "Offset": 2400000,
+                            "Duration": 3400000,
+                            "AccuracyScore": 100.0
+                        }
+                    ],
+                    "Phonemes": [
+                        {
+                            "Phoneme": "h",
+                            "Offset": 400000,
+                            "Duration": 700000,
+                            "AccuracyScore": 100.0
+                        },
+                        {
+                            "Phoneme": "ax",
+                            "Offset": 1200000,
+                            "Duration": 1100000,
+                            "AccuracyScore": 100.0
+                        },
+                        {
+                            "Phoneme": "l",
+                            "Offset": 2400000,
+                            "Duration": 1100000,
+                            "AccuracyScore": 100.0
+                        },
+                        {
+                            "Phoneme": "ow",
+                            "Offset": 3600000,
+                            "Duration": 2200000,
+                            "AccuracyScore": 100.0
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "DisplayText": "Hello."
+}

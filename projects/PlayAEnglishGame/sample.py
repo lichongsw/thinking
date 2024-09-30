@@ -45,7 +45,8 @@ WaveHeader16K16BitMono = bytes([ 82, 73, 70, 70, 78, 128, 0, 0, 87, 65, 86, 69, 
 def get_chunk(audio_source, chunk_size=1024):
   yield WaveHeader16K16BitMono
   while True:
-    time.sleep(chunk_size / 32000) # to simulate human speaking rate
+    # time.sleep(chunk_size / 32000) # to simulate human speaking rate
+    time.sleep(chunk_size / 320000) # to simulate human speaking rate
     chunk = audio_source.read(chunk_size)
     if not chunk:
       global uploadFinishTime
@@ -54,12 +55,16 @@ def get_chunk(audio_source, chunk_size=1024):
     yield chunk
 
 # build pronunciation assessment parameters
+
 # referenceText = "Good morning."
-referenceText = "Hello."
-
 # audioFile = open('goodmorning.pcm', 'rb')
-audioFile = open('hello.pcm', 'rb')
 
+referenceText = "Hello."
+audioFile = open('hello_useful_2.wav', 'rb')
+
+# referenceText = "Interactive language learning with pronunciation assessment gives you instant feedback on pronunciation, fluency, prosody, grammar, and vocabulary through interactive chats."
+# audioFile = open('Interactive_language_learning.mp3', 'rb')
+# audioFile = open('Interactive_language_learning_02.mp3', 'rb')
 
 pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\"}" % referenceText
 print("pronAssessmentParamsJson:", pronAssessmentParamsJson)
@@ -72,7 +77,7 @@ print("url:", url)
 headers = { 'Accept': 'application/json;text/xml',
             'Connection': 'Keep-Alive',
             # 'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
-            'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
+            'Content-Type': 'audio/mp3; codecs=audio/mpeg; samplerate=48000',
             'Ocp-Apim-Subscription-Key': subscriptionKey,
             'Pronunciation-Assessment': pronAssessmentParams,
             'Transfer-Encoding': 'chunked',
@@ -86,7 +91,10 @@ getResponseTime = time.time()
 audioFile.close()
 
 resultJson = json.loads(response.text)
-print(json.dumps(resultJson, indent=4))
+# print(json.dumps(resultJson, indent=4))
+# 写到json文件
+with open('sample.json', 'w') as f:
+    json.dump(resultJson, f, indent=4)
 
 latency = getResponseTime - uploadFinishTime
 print("Latency = %sms" % int(latency * 1000))
