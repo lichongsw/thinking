@@ -66,7 +66,8 @@ audioFile = open('hello_useful_2.wav', 'rb')
 # audioFile = open('Interactive_language_learning.mp3', 'rb')
 # audioFile = open('Interactive_language_learning_02.mp3', 'rb')
 
-pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\"}" % referenceText
+# pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\"}" % referenceText
+pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\", \"granularity\":\"Phoneme\", \"phonemeAlphabet\":\"IPA\"}" % referenceText
 print("pronAssessmentParamsJson:", pronAssessmentParamsJson)
 pronAssessmentParamsBase64 = base64.b64encode(bytes(pronAssessmentParamsJson, 'utf-8'))
 pronAssessmentParams = str(pronAssessmentParamsBase64, "utf-8")

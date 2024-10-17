@@ -23,14 +23,14 @@
                     "ErrorType": "None",
                     "Syllables": [
                         {
-                            "Syllable": "hax",
+                            "Syllable": "h\u0259",
                             "Grapheme": "hel",
                             "Offset": 400000,
                             "Duration": 1900000,
                             "AccuracyScore": 100.0
                         },
                         {
-                            "Syllable": "low",
+                            "Syllable": "lo\u028a",
                             "Grapheme": "lo",
                             "Offset": 2400000,
                             "Duration": 3400000,
@@ -45,7 +45,7 @@
                             "AccuracyScore": 100.0
                         },
                         {
-                            "Phoneme": "ax",
+                            "Phoneme": "\u0259",
                             "Offset": 1200000,
                             "Duration": 1100000,
                             "AccuracyScore": 100.0
@@ -57,7 +57,7 @@
                             "AccuracyScore": 100.0
                         },
                         {
-                            "Phoneme": "ow",
+                            "Phoneme": "o\u028a",
                             "Offset": 3600000,
                             "Duration": 2200000,
                             "AccuracyScore": 100.0
