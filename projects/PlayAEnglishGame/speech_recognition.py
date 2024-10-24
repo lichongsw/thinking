@@ -33,8 +33,11 @@ import base64
 import json
 import time
 
-subscriptionKey = "e82807440b154003abb0db805cb70f3b" # replace this with your subscription key
-region = "westus" # replace this with the region corresponding to your subscription key, e.g. westus, eastasia
+# subscriptionKey = "e82807440b154003abb0db805cb70f3b" # replace this with your subscription key
+# region = "westus" # replace this with the region corresponding to your subscription key, e.g. westus, eastasia
+
+subscriptionKey = "e7849e713ed7417f8a4dd76d507c998d" # replace this with your subscription key
+region = "eastasia" # replace this with the region corresponding to your subscription key, e.g. westus, eastasia
 
 # a common wave header, with zero audio length
 # since stream data doesn't contain header, but the API requires header to fetch format information, so you need post this header as first chunk for each query
@@ -42,11 +45,11 @@ WaveHeader16K16BitMono = bytes([ 82, 73, 70, 70, 78, 128, 0, 0, 87, 65, 86, 69, 
 
 # a generator which reads audio data chunk by chunk
 # the audio_source can be any audio input stream which provides read() method, e.g. audio file, microphone, memory stream, etc.
-def get_chunk(audio_source, chunk_size=1024):
+def get_chunk(audio_source, chunk_size=10240):
   yield WaveHeader16K16BitMono
   while True:
     # time.sleep(chunk_size / 32000) # to simulate human speaking rate
-    time.sleep(chunk_size / 320000) # to simulate human speaking rate
+    # time.sleep(chunk_size / 320000) # to simulate human speaking rate
     chunk = audio_source.read(chunk_size)
     if not chunk:
       global uploadFinishTime
@@ -59,23 +62,26 @@ def get_chunk(audio_source, chunk_size=1024):
 # referenceText = "Good morning."
 # audioFile = open('goodmorning.pcm', 'rb')
 
-referenceText = "Hello."
-audioFile = open('hello_useful_2.wav', 'rb')
+# referenceText = "Hello"
+# referenceAudio = "hello_useful_2.wav"
 
-# referenceText = "Interactive language learning with pronunciation assessment gives you instant feedback on pronunciation, fluency, prosody, grammar, and vocabulary through interactive chats."
-# audioFile = open('Interactive_language_learning.mp3', 'rb')
-# audioFile = open('Interactive_language_learning_02.mp3', 'rb')
+referenceText = "Interactive language learning with pronunciation assessment gives you instant feedback on pronunciation, fluency, prosody, grammar, and vocabulary through interactive chats."
+referenceAudio = "Interactive_language_learning_02.mp3"
 
 # pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\"}" % referenceText
-pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\", \"granularity\":\"Phoneme\", \"phonemeAlphabet\":\"IPA\"}" % referenceText
-print("pronAssessmentParamsJson:", pronAssessmentParamsJson)
-pronAssessmentParamsBase64 = base64.b64encode(bytes(pronAssessmentParamsJson, 'utf-8'))
-pronAssessmentParams = str(pronAssessmentParamsBase64, "utf-8")
+
+# reference text and audio is enough to do recognition
+def do_recognition(referenceText, audio):
+    audioFile = open(audio, 'rb')
+    pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\", \"granularity\":\"Phoneme\", \"phonemeAlphabet\":\"IPA\"}" % referenceText
+    print("pronAssessmentParamsJson:", pronAssessmentParamsJson)
+    pronAssessmentParamsBase64 = base64.b64encode(bytes(pronAssessmentParamsJson, 'utf-8'))
+    pronAssessmentParams = str(pronAssessmentParamsBase64, "utf-8")
 
 # build request
-url = "https://%s.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-us" % region
-print("url:", url)
-headers = { 'Accept': 'application/json;text/xml',
+    url = "https://%s.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=en-us" % region
+    print("url:", url)
+    headers = { 'Accept': 'application/json;text/xml',
             'Connection': 'Keep-Alive',
             # 'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
             'Content-Type': 'audio/mp3; codecs=audio/mpeg; samplerate=48000',
@@ -83,14 +89,16 @@ headers = { 'Accept': 'application/json;text/xml',
             'Pronunciation-Assessment': pronAssessmentParams,
             'Transfer-Encoding': 'chunked',
             'Expect': '100-continue' }
-print("headers:", headers)
+	# print("headers:", headers)
+	# send request with chunked data
+    response = requests.post(url=url, data=get_chunk(audioFile), headers=headers)
+    print("response:", response)
+    getResponseTime = time.time()
+    audioFile.close()
+    return response,getResponseTime
 
-# send request with chunked data
-response = requests.post(url=url, data=get_chunk(audioFile), headers=headers)
-print("response:", response)
-getResponseTime = time.time()
-audioFile.close()
-
+startTime = time.time()
+response, getResponseTime = do_recognition(referenceText, referenceAudio)
 resultJson = json.loads(response.text)
 # print(json.dumps(resultJson, indent=4))
 # 写到json文件
@@ -99,3 +107,4 @@ with open('sample.json', 'w') as f:
 
 latency = getResponseTime - uploadFinishTime
 print("Latency = %sms" % int(latency * 1000))
+print("start time:", startTime, " , upload finish time:", uploadFinishTime, " , get response time:", getResponseTime, " , latency:", latency)
