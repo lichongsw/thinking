@@ -34,6 +34,7 @@ import json
 import time
 import sys
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 # import pyaudio
 # import wave
 
@@ -107,17 +108,21 @@ def test_demo(referenceText, referenceAudio):
     print("Latency = %sms" % int(latency * 1000))
     print("start time:", startTime, " , upload finish time:", uploadFinishTime, " , get response time:", getResponseTime, " , latency:", latency)
 
-
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/upload_audio', methods=['POST', "GET"])
 def upload_audio():
     # 获取上传的文件
+    print("============================================")
+    print(request.files)
     audio_file = request.files['audio']
+    print(audio_file)
     
-    # 保存语音文件
+    # # 保存语音文件
     filename = f'uploaded_audio_{request.form["filename"]}' if 'filename' in request.form else 'uploaded_audio.wav'
-    audio_file.save(f'{filename}')
+    print(filename)
+    # audio_file.save(f'{filename}')
     
     # # 处理语音文件（这里只是简单保存，实际应用可能需要更多操作）
     # p = pyaudio.PyAudio()
@@ -133,6 +138,7 @@ def main() -> int:
     # test_demo("Hello", "hello_useful_2.wav")
     app.run(port=5000, debug=True)
     return 0
+
 
 # 添加main函数入口
 if __name__ == '__main__':
