@@ -32,6 +32,10 @@ import requests
 import base64
 import json
 import time
+import sys
+from flask import Flask, request, jsonify
+# import pyaudio
+# import wave
 
 # subscriptionKey = "e82807440b154003abb0db805cb70f3b" # replace this with your subscription key
 # region = "westus" # replace this with the region corresponding to your subscription key, e.g. westus, eastasia
@@ -46,29 +50,15 @@ WaveHeader16K16BitMono = bytes([ 82, 73, 70, 70, 78, 128, 0, 0, 87, 65, 86, 69, 
 # a generator which reads audio data chunk by chunk
 # the audio_source can be any audio input stream which provides read() method, e.g. audio file, microphone, memory stream, etc.
 def get_chunk(audio_source, chunk_size=10240):
-  yield WaveHeader16K16BitMono
-  while True:
-    # time.sleep(chunk_size / 32000) # to simulate human speaking rate
-    # time.sleep(chunk_size / 320000) # to simulate human speaking rate
-    chunk = audio_source.read(chunk_size)
-    if not chunk:
-      global uploadFinishTime
-      uploadFinishTime = time.time()
-      break
-    yield chunk
-
-# build pronunciation assessment parameters
-
-# referenceText = "Good morning."
-# audioFile = open('goodmorning.pcm', 'rb')
-
-# referenceText = "Hello"
-# referenceAudio = "hello_useful_2.wav"
-
-referenceText = "Interactive language learning with pronunciation assessment gives you instant feedback on pronunciation, fluency, prosody, grammar, and vocabulary through interactive chats."
-referenceAudio = "Interactive_language_learning_02.mp3"
-
-# pronAssessmentParamsJson = "{\"ReferenceText\":\"%s\",\"GradingSystem\":\"HundredMark\",\"Dimension\":\"Comprehensive\"}" % referenceText
+    yield WaveHeader16K16BitMono
+    while True:
+        # time.sleep(chunk_size / 32000) # to simulate human speaking rate
+        # time.sleep(chunk_size / 320000) # to simulate human speaking rate
+        chunk = audio_source.read(chunk_size)
+        if not chunk:
+            uploadFinishTime = time.time()
+            break
+        yield chunk
 
 # reference text and audio is enough to do recognition
 def do_recognition(referenceText, audio):
@@ -89,22 +79,61 @@ def do_recognition(referenceText, audio):
             'Pronunciation-Assessment': pronAssessmentParams,
             'Transfer-Encoding': 'chunked',
             'Expect': '100-continue' }
-	# print("headers:", headers)
-	# send request with chunked data
+    # print("headers:", headers)
+    # send request with chunked data
     response = requests.post(url=url, data=get_chunk(audioFile), headers=headers)
     print("response:", response)
     getResponseTime = time.time()
     audioFile.close()
     return response,getResponseTime
 
-startTime = time.time()
-response, getResponseTime = do_recognition(referenceText, referenceAudio)
-resultJson = json.loads(response.text)
-# print(json.dumps(resultJson, indent=4))
-# 写到json文件
-with open('sample.json', 'w') as f:
-    json.dump(resultJson, f, indent=4)
+def test_demo(referenceText, referenceAudio):
+    uploadFinishTime = time.time()
+    # referenceText = "Hello"
+    # referenceAudio = "hello_useful_2.wav"
 
-latency = getResponseTime - uploadFinishTime
-print("Latency = %sms" % int(latency * 1000))
-print("start time:", startTime, " , upload finish time:", uploadFinishTime, " , get response time:", getResponseTime, " , latency:", latency)
+    # referenceText = "Interactive language learning with pronunciation assessment gives you instant feedback on pronunciation, fluency, prosody, grammar, and vocabulary through interactive chats."
+    # referenceAudio = "Interactive_language_learning_02.mp3"
+
+    startTime = time.time()
+    response, getResponseTime = do_recognition(referenceText, referenceAudio)
+    resultJson = json.loads(response.text)
+    # print(json.dumps(resultJson, indent=4))
+    # 写到json文件
+    with open('sample.json', 'w') as f:
+        json.dump(resultJson, f, indent=4)
+
+    latency = getResponseTime - uploadFinishTime
+    print("Latency = %sms" % int(latency * 1000))
+    print("start time:", startTime, " , upload finish time:", uploadFinishTime, " , get response time:", getResponseTime, " , latency:", latency)
+
+
+app = Flask(__name__)
+
+@app.route('/upload_audio', methods=['POST', "GET"])
+def upload_audio():
+    # 获取上传的文件
+    audio_file = request.files['audio']
+    
+    # 保存语音文件
+    filename = f'uploaded_audio_{request.form["filename"]}' if 'filename' in request.form else 'uploaded_audio.wav'
+    audio_file.save(f'{filename}')
+    
+    # # 处理语音文件（这里只是简单保存，实际应用可能需要更多操作）
+    # p = pyaudio.PyAudio()
+    # wf = wave.open(f'{filename}', 'rb')
+    
+    # # 假设我们要将语音转换为文本
+    # text = convert_audio_to_text(wf)
+    
+    # # 返回结果
+    return jsonify({'message': f'Audio uploaded successfully', 'text': "hello world"})
+
+def main() -> int:
+    # test_demo("Hello", "hello_useful_2.wav")
+    app.run(port=5000, debug=True)
+    return 0
+
+# 添加main函数入口
+if __name__ == '__main__':
+    sys.exit(main())
