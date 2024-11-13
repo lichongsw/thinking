@@ -28,6 +28,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+import os
 import requests
 import base64
 import json
@@ -109,32 +110,53 @@ def test_demo(referenceText, referenceAudio):
     print("start time:", startTime, " , upload finish time:", uploadFinishTime, " , get response time:", getResponseTime, " , latency:", latency)
 
 app = Flask(__name__)
-CORS(app)
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+    return response
 
 @app.route('/upload_audio', methods=['POST', "GET"])
 def upload_audio():
-    # 获取上传的文件
-    print("============================================")
-    print(request.files)
-    audio_file = request.files['audio']
-    print(audio_file)
+    print("1111111111111")
+    print(request)
+    if 'audio' not in request.files:
+        return jsonify({'error': 'No audio file part'})
     
-    # # 保存语音文件
-    filename = f'uploaded_audio_{request.form["filename"]}' if 'filename' in request.form else 'uploaded_audio.wav'
+    # 获取上传文件
+    file = request.files['audio']
+    
+    # 检查文件是否为空
+    if file.filename == '':
+        return {'error': 'No selected file'},
+    
+    # 保存文件到本地
+    filename = f'{"upload_" + file.filename}'
+    print("22222222222")
     print(filename)
-    # audio_file.save(f'{filename}')
+    file.save(os.path.join(app.root_path, filename))
     
-    # # 处理语音文件（这里只是简单保存，实际应用可能需要更多操作）
-    # p = pyaudio.PyAudio()
-    # wf = wave.open(f'{filename}', 'rb')
+    return jsonify({'message': 'File uploaded successfully'})
+
+@app.route('/binary-data', methods=['POST', "GET"])
+def receive_binary_data():
+    # 获取二进制数据
+    binary_data = request.data
     
-    # # 假设我们要将语音转换为文本
-    # text = convert_audio_to_text(wf)
+    # 打印接收到的二进制数据长度
+    print(f"Received {len(binary_data)} bytes of data")
     
-    # # 返回结果
-    return jsonify({'message': f'Audio uploaded successfully', 'text': "hello world"})
+    # 您可以在这里处理接收到的二进制数据
+    # 例如，将其保存到文件中
+    with open("received_data.wav", "wb") as f:
+        f.write(binary_data)
+    
+    # 返回确认消息
+    return jsonify({"message": "Binary data received successfully"}), 200
 
 def main() -> int:
+
     # test_demo("Hello", "hello_useful_2.wav")
     app.run(port=5000, debug=True)
     return 0
