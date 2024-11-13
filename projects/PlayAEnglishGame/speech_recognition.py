@@ -75,8 +75,8 @@ def do_recognition(referenceText, audio):
     print("url:", url)
     headers = { 'Accept': 'application/json;text/xml',
             'Connection': 'Keep-Alive',
-            # 'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
-            'Content-Type': 'audio/mp3; codecs=audio/mpeg; samplerate=48000',
+            'Content-Type': 'audio/wav; codecs=audio/pcm; samplerate=16000',
+            # 'Content-Type': 'audio/mp3; codecs=audio/mpeg; samplerate=48000',
             'Ocp-Apim-Subscription-Key': subscriptionKey,
             'Pronunciation-Assessment': pronAssessmentParams,
             'Transfer-Encoding': 'chunked',
@@ -89,7 +89,8 @@ def do_recognition(referenceText, audio):
     audioFile.close()
     return response,getResponseTime
 
-def test_demo(referenceText, referenceAudio):
+
+def recognition(referenceText, referenceAudio):
     uploadFinishTime = time.time()
     # referenceText = "Hello"
     # referenceAudio = "hello_useful_2.wav"
@@ -108,13 +109,16 @@ def test_demo(referenceText, referenceAudio):
     latency = getResponseTime - uploadFinishTime
     print("Latency = %sms" % int(latency * 1000))
     print("start time:", startTime, " , upload finish time:", uploadFinishTime, " , get response time:", getResponseTime, " , latency:", latency)
+    return resultJson
+
 
 app = Flask(__name__)
+CORS(app)
 
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+    response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Text')
     return response
 
 @app.route('/upload_audio', methods=['POST', "GET"])
@@ -151,13 +155,20 @@ def receive_binary_data():
     # 例如，将其保存到文件中
     with open("received_data.wav", "wb") as f:
         f.write(binary_data)
+        f.flush()
+        f.close()
     
     # 返回确认消息
-    return jsonify({"message": "Binary data received successfully"}), 200
+    # return jsonify({"message": "Binary data received successfully"})
+    print("==============================")
+    print(request.headers["Text"])
+    if request.headers["Text"]:
+        return recognition(request.headers["Text"], "received_data.wav")
+    else:
+        return jsonify({"RecognitionStatus": "Failed"})
 
 def main() -> int:
-
-    # test_demo("Hello", "hello_useful_2.wav")
+    # recognition("Hello", "hello_useful_2.wav")
     app.run(port=5000, debug=True)
     return 0
 
