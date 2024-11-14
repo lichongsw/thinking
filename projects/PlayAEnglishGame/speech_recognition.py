@@ -33,11 +33,20 @@ import requests
 import base64
 import json
 import time
+import random
 import sys
-from flask import Flask, request, jsonify
+import shutil
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-# import pyaudio
-# import wave
+from ratelimit import limits
+
+import azure.cognitiveservices.speech as speechsdk
+speech_config = speechsdk.SpeechConfig(subscription="e82807440b154003abb0db805cb70f3b", region="westus")
+audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
+# The neural multilingual voice can speak different languages based on the input text.
+speech_config.speech_synthesis_voice_name='en-US-AvaMultilingualNeural'
+speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+
 
 # subscriptionKey = "e82807440b154003abb0db805cb70f3b" # replace this with your subscription key
 # region = "westus" # replace this with the region corresponding to your subscription key, e.g. westus, eastasia
@@ -87,17 +96,12 @@ def do_recognition(referenceText, audio):
     print("response:", response)
     getResponseTime = time.time()
     audioFile.close()
+    os.remove(audio)
     return response,getResponseTime
 
 
 def recognition(referenceText, referenceAudio):
     uploadFinishTime = time.time()
-    # referenceText = "Hello"
-    # referenceAudio = "hello_useful_2.wav"
-
-    # referenceText = "Interactive language learning with pronunciation assessment gives you instant feedback on pronunciation, fluency, prosody, grammar, and vocabulary through interactive chats."
-    # referenceAudio = "Interactive_language_learning_02.mp3"
-
     startTime = time.time()
     response, getResponseTime = do_recognition(referenceText, referenceAudio)
     resultJson = json.loads(response.text)
@@ -143,32 +147,66 @@ def upload_audio():
     
     return jsonify({'message': 'File uploaded successfully'})
 
+
+last_request_time = {}
 @app.route('/binary-data', methods=['POST', "GET"])
+@limits(calls=60, period=60)
 def receive_binary_data():
+    # 客户端IP流控
+    ip_address = request.remote_addr
+    last = last_request_time.get(ip_address, 0)
+    if last != 0:
+        if time.time() - last < 5:
+            print("Rate limit exceeded")
+            return jsonify({"RecognitionStatus": "Failed", "Message": "Try later"})
+    last_request_time[ip_address] = time.time()
+    
     # 获取二进制数据
     binary_data = request.data
     
     # 打印接收到的二进制数据长度
     print(f"Received {len(binary_data)} bytes of data")
     
-    # 您可以在这里处理接收到的二进制数据
-    # 例如，将其保存到文件中
-    with open("received_data.wav", "wb") as f:
-        f.write(binary_data)
-        f.flush()
-        f.close()
-    
+
     # 返回确认消息
-    # return jsonify({"message": "Binary data received successfully"})
-    print("==============================")
-    print(request.headers["Text"])
     if request.headers["Text"]:
-        return recognition(request.headers["Text"], "received_data.wav")
+        # 将其保存到文件中. 为了支持并发，随机文件名
+        fileName = "received_data" + random.randint(0, 10000).__str__() + ".wav"
+        with open(fileName, "wb") as f:
+            f.write(binary_data)
+            f.flush()
+            f.close()
+        return recognition(request.headers["Text"], fileName)
     else:
-        return jsonify({"RecognitionStatus": "Failed"})
+        return jsonify({"RecognitionStatus": "Failed", "Message": "Invalid text"})
+
+@app.route('/tts', methods=['POST', "GET"])
+def text_to_speech():
+    # 返回确认消息
+    # return jsonify({"message": "Do text_to_speech successfully"})
+    print("tts==============================")
+    if request.headers["Text"]:
+        text = request.headers["Text"]
+        print(text)
+        speech_synthesis_result = speech_synthesizer.speak_text_async(text).get()
+        with open("tts_output.wav", "wb") as file:
+            file.write(speech_synthesis_result.audio_data)
+        response = Response(speech_synthesis_result.audio_data)
+        response.headers['Content-Type'] = 'audio/wav'
+        return response
+    else:
+        return jsonify({"TTSStatus": "Failed"})
+
+
+def local_demo():
+    # local bemo
+    shutil.copy("hello_useful_2.wav", "hello_useful_2_tmp.wav")
+    recognition("Hello", "hello_useful_2_tmp.wav")
+    # shutil.copy("output.wav", "output_tmp.wav")
+    # recognition("", "output_tmp.wav")
 
 def main() -> int:
-    # recognition("Hello", "hello_useful_2.wav")
+    # local_demo()
     app.run(port=5000, debug=True)
     return 0
 
